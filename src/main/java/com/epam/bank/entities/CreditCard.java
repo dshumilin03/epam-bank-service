@@ -1,4 +1,4 @@
-package com.epam.bank.entity;
+package com.epam.bank.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @PrimaryKeyJoinColumn(name = "card_id")
 @Getter
 @Setter
-public class CreditCardEntity extends AbstractCardEntity {
+public class CreditCard extends AbstractCard {
 
     @Column(name = "interest_free_period_days")
     private Integer interestFreePeriodDays;
@@ -23,8 +23,8 @@ public class CreditCardEntity extends AbstractCardEntity {
     @Column(name = "percent")
     private Double percent;
 
-    @Column(name = "next_charge_date")
-    private LocalDateTime nextChargeDate;
+    @Column(name = "next_charge_at")
+    private LocalDateTime nextChargeAt;
 
     @Column(name = "credit_limit")
     private BigDecimal creditLimit;

@@ -1,4 +1,4 @@
-package com.epam.bank.entity;
+package com.epam.bank.entities;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
@@ -11,5 +11,5 @@ import lombok.Setter;
 @PrimaryKeyJoinColumn(name = "card_id")
 @Getter
 @Setter
-public class DebitCardEntity extends AbstractCardEntity {
+public class DebitCard extends AbstractCard {
 }

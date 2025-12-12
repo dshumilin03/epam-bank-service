@@ -1,4 +1,4 @@
-package com.epam.bank.entity;
+package com.epam.bank.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,15 +12,15 @@ import java.util.UUID;
 @Table(name = "transaction")
 @Getter
 @Setter
-public class TransactionEntity {
+public class Transaction {
 
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "date_time")
-    private LocalDateTime dateTime;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @Column(name = "money_amount")
     private BigDecimal moneyAmount;
@@ -38,9 +38,9 @@ public class TransactionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_bank_account_number", referencedColumnName = "bank_account_number")
-    private BankAccountEntity source;
+    private BankAccount source;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_bank_account_number", referencedColumnName = "bank_account_number")
-    private BankAccountEntity target;
+    private BankAccount target;
 }

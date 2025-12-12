@@ -1,4 +1,4 @@
-package com.epam.bank.entity;
+package com.epam.bank.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import java.util.UUID;
 @Table(name = "loan")
 @Getter
 @Setter
-public class LoanEntity {
+public class Loan {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -29,5 +29,5 @@ public class LoanEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_number", referencedColumnName = "bank_account_number", nullable = false)
-    private BankAccountEntity bankAccount;
+    private BankAccount bankAccount;
 }

@@ -1,4 +1,4 @@
-package com.epam.bank.entity;
+package com.epam.bank.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,7 +11,7 @@ import java.util.List;
 @Table(name = "bank_account")
 @Getter
 @Setter
-public class BankAccountEntity {
+public class BankAccount {
 
     @Column(name = "bank_account_number")
     @Id
@@ -22,14 +22,14 @@ public class BankAccountEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private UserEntity user;
+    private User user;
 
     @OneToOne(mappedBy = "bankAccount", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private AbstractCardEntity card;
+    private AbstractCard card;
 
     @OneToMany(mappedBy = "source",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<TransactionEntity> outgoingTransactions;
+    private List<Transaction> outgoingTransactions;
 
     @OneToMany(mappedBy = "target",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<TransactionEntity> incomingTransactions;
+    private List<Transaction> incomingTransactions;
 }

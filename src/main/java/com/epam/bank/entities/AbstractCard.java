@@ -1,4 +1,4 @@
-package com.epam.bank.entity;
+package com.epam.bank.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-public abstract class AbstractCardEntity {
+public abstract class AbstractCard {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,8 +24,11 @@ public abstract class AbstractCardEntity {
     @Column(name = "pin_code")
     private String pinCode;
 
-    @Column(name = "expiration_date")
-    private LocalDate expirationDate;
+    @Column(name = "cvv_code")
+    private Integer cvv;
+
+    @Column(name = "expires_at")
+    private LocalDate expiresAt;
 
     @Column(name = "owner_name")
     private String ownerName;
@@ -36,6 +39,6 @@ public abstract class AbstractCardEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_number", referencedColumnName = "bank_account_number", unique = true)
-    private BankAccountEntity bankAccount;
+    private BankAccount bankAccount;
 
 }

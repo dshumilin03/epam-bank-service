@@ -1,4 +1,4 @@
-package com.epam.bank.entity;
+package com.epam.bank.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "user")
+@Table(name = "users")
 @Getter
 @Setter
-public class UserEntity {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -38,5 +38,5 @@ public class UserEntity {
     private Role role;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    List<BankAccountEntity> bankAccounts;
+    List<BankAccount> bankAccounts;
 }
