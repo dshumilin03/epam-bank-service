@@ -46,7 +46,7 @@ public class LoanServiceImpl implements LoanService {
         Loan loan = loanMapper.toLoan(loanDTO);
         LocalDateTime now = LocalDateTime.now();
         loan.setCreatedAt(now);
-        ChargeStrategyType strategyType = loan.getChargeStrategy();
+        ChargeStrategyType strategyType = loan.getChargeStrategyType();
 
         switch (strategyType) {
             case DAILY -> loan.setNextChargeAt(now.plusDays(1));

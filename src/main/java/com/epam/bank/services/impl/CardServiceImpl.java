@@ -3,6 +3,7 @@ package com.epam.bank.services.impl;
 import com.epam.bank.dtos.AbstractCardDTO;
 import com.epam.bank.dtos.UserDTO;
 import com.epam.bank.entities.AbstractCard;
+import com.epam.bank.entities.CardStatus;
 import com.epam.bank.entities.CardType;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.AbstractCardMapper;
@@ -73,5 +74,8 @@ public class CardServiceImpl implements CardService {
         AbstractCard card = abstractCardRepository.findById(cardId)
                 .orElseThrow(() -> new NotFoundException("Card not found by Id"));
 
+        card.setStatus(CardStatus.BLOCKED);
+
+        abstractCardRepository.save(card);
     }
 }

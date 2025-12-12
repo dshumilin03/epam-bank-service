@@ -1,5 +1,6 @@
 package com.epam.bank.entities;
 
+import com.epam.bank.services.Chargeable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Table(name = "loan")
 @Getter
 @Setter
-public class Loan {
+public class Loan implements Chargeable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,6 +24,9 @@ public class Loan {
 
     @Column(name = "percent", nullable = false)
     private Double percent;
+
+    @Column(name = "term_months", nullable = false)
+    private Long termMoths;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -35,9 +39,14 @@ public class Loan {
 
     @Column(name = "charge_strategy", nullable = false)
     @Enumerated(EnumType.STRING)
-    private ChargeStrategyType chargeStrategy;
+    private ChargeStrategyType chargeStrategyType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_number", referencedColumnName = "bank_account_number", nullable = false)
     private BankAccount bankAccount;
+
+    @Override
+    public BigDecimal getDebt() {
+        return bankAccount.getMoneyAmount();
+    }
 }

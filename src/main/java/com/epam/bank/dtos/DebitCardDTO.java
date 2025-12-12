@@ -1,10 +1,18 @@
 package com.epam.bank.dtos;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class DebitCardDTO extends AbstractCardDTO {
+import java.time.LocalDate;
+import java.util.UUID;
+
+public record DebitCardDTO(
+        @org.hibernate.validator.constraints.UUID
+        UUID id,
+        @NotBlank String cardNumber,
+        @NotNull Integer cvv,
+        @NotNull LocalDate expiresAt,
+        @NotNull String ownerName
+) {
 
 }

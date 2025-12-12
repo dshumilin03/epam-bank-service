@@ -1,9 +1,7 @@
 package com.epam.bank.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.PrimaryKeyJoinColumn;
-import jakarta.persistence.Table;
+import com.epam.bank.services.Chargeable;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,7 +13,7 @@ import java.time.LocalDateTime;
 @PrimaryKeyJoinColumn(name = "card_id")
 @Getter
 @Setter
-public class CreditCard extends AbstractCard {
+public class CreditCard extends AbstractCard implements Chargeable {
 
     @Column(name = "interest_free_period_days")
     private Integer interestFreePeriodDays;
@@ -31,4 +29,13 @@ public class CreditCard extends AbstractCard {
 
     @Column(name = "credit_limit")
     private BigDecimal creditLimit;
+
+    @Column(name = "charge_strategy", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ChargeStrategyType chargeStrategyType;
+
+    @Override
+    public BigDecimal getDebt() {
+        return creditLimit.subtract(getBankAccount().getMoneyAmount());
+    }
 }

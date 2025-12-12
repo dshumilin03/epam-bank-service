@@ -12,7 +12,7 @@ import java.util.UUID;
 @Entity
 @Getter
 @Setter
-public abstract class AbstractCard {
+public class AbstractCard {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

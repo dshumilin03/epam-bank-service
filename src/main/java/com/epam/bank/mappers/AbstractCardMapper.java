@@ -6,7 +6,8 @@ import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
 public interface AbstractCardMapper {
-    AbstractCardDTO toDTO(AbstractCard abstractCard);
 
-    AbstractCard toAbstractCard(AbstractCardDTO abstractCardDTO);
+    AbstractCardDTO toDTO(AbstractCard card);
+
+    AbstractCard toAbstractCard(AbstractCardDTO dto);
 }

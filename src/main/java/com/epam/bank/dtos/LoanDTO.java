@@ -15,6 +15,7 @@ public record LoanDTO(
         @NotNull BankAccountDTO bankAccount,
         @NotNull LocalDateTime createdAt,
         @NotNull LocalDateTime nextCharge,
-        @NotNull LocalDateTime lastCharge
+        @NotNull LocalDateTime lastCharge,
+        @NotNull Long termMonths
 ) {
 }
