@@ -1,6 +1,5 @@
-package com.epam.bank.dto;
+package com.epam.bank.dtos;
 
-import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
 import jakarta.validation.constraints.NotBlank;
@@ -10,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+// TODO check cyclic of dto's
 public record TransactionDTO(
         @org.hibernate.validator.constraints.UUID UUID id,
         @NotNull LocalDateTime createdAt,
@@ -17,7 +17,8 @@ public record TransactionDTO(
         @NotBlank String description,
         @NotBlank TransactionStatus status,
         @NotBlank TransactionType transactionType,
-        @NotNull BankAccount source,
-        @NotNull BankAccount target
-        ) {
+        @NotNull BankAccountDTO source,
+        @NotNull BankAccountDTO target
+) {
 }
+

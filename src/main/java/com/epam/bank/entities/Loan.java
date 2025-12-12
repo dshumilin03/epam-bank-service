@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -22,6 +23,15 @@ public class Loan {
 
     @Column(name = "percent", nullable = false)
     private Double percent;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "next_charge_at", nullable = false)
+    private LocalDateTime nextChargeAt;
+
+    @Column(name = "last_charge_at", nullable = false)
+    private LocalDateTime lastChargeAt;
 
     @Column(name = "charge_strategy", nullable = false)
     @Enumerated(EnumType.STRING)

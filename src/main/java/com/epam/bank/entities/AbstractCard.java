@@ -22,7 +22,7 @@ public abstract class AbstractCard {
     private String cardNumber;
 
     @Column(name = "pin_code")
-    private String pinCode;
+    private Integer pinCode;
 
     @Column(name = "cvv_code")
     private Integer cvv;
@@ -36,6 +36,10 @@ public abstract class AbstractCard {
     @Column(name = "card_status")
     @Enumerated(EnumType.STRING)
     private CardStatus status;
+
+    @Column(name = "card_type")
+    @Enumerated(EnumType.STRING)
+    private CardType type;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_number", referencedColumnName = "bank_account_number", unique = true)

@@ -1,4 +1,4 @@
-package com.epam.bank.service.strategy;
+package com.epam.bank.services.strategies;
 
 import java.math.BigDecimal;
 

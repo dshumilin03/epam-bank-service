@@ -1,6 +1,6 @@
 package com.epam.bank.mappers;
 
-import com.epam.bank.dto.CreditCardDTO;
+import com.epam.bank.dtos.CreditCardDTO;
 import com.epam.bank.entities.AbstractCard;
 import com.epam.bank.entities.CreditCard;
 import org.mapstruct.Mapper;

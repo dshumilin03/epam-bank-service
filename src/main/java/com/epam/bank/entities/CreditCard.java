@@ -26,6 +26,9 @@ public class CreditCard extends AbstractCard {
     @Column(name = "next_charge_at")
     private LocalDateTime nextChargeAt;
 
+    @Column(name = "last_charge_at")
+    private LocalDateTime lastChargeAt;
+
     @Column(name = "credit_limit")
     private BigDecimal creditLimit;
 }

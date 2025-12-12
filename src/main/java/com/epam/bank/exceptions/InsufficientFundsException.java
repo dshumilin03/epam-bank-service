@@ -1,4 +1,4 @@
-package com.epam.bank.exception;
+package com.epam.bank.exceptions;
 
 public class InsufficientFundsException extends RuntimeException {
     public InsufficientFundsException(String string) {

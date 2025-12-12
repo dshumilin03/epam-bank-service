@@ -1,4 +1,4 @@
-package com.epam.bank.dto;
+package com.epam.bank.dtos;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 public record RegisterRequest(
         @NotBlank String fullName,
         @Email String email,
-        @NotBlank String password
+        @NotBlank String password,
+        @NotBlank String passportId
 ) {
 }

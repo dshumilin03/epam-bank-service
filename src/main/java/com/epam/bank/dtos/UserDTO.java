@@ -1,6 +1,5 @@
-package com.epam.bank.dto;
+package com.epam.bank.dtos;
 
-import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +15,6 @@ public record UserDTO(
         @NotBlank String password,
         @NotNull Boolean isDisabled,
         @NotNull Role role,
-        @NotNull List<BankAccount> bankAccounts
+        @NotNull List<BankAccountDTO> bankAccounts
 ) {
 }
