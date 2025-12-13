@@ -1,7 +1,6 @@
 package com.epam.bank.services;
 
 import com.epam.bank.dtos.CardDTO;
-import com.epam.bank.dtos.UserDTO;
 import com.epam.bank.entities.CardType;
 
 import java.util.List;
@@ -11,7 +10,7 @@ public interface CardService {
 
     CardDTO getByNumber(String cardNumber);
 
-    List<CardDTO> getByUser(UserDTO userDTO);
+    List<CardDTO> getByUserId(UUID userId);
 
     CardDTO create(UUID userId, CardType cardType);
 

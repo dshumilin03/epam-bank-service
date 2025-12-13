@@ -1,7 +1,6 @@
 package com.epam.bank.services.impl;
 
 import com.epam.bank.dtos.CardDTO;
-import com.epam.bank.dtos.UserDTO;
 import com.epam.bank.entities.AbstractCard;
 import com.epam.bank.entities.CardStatus;
 import com.epam.bank.entities.CardType;
@@ -33,8 +32,8 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public List<CardDTO> getByUser(UserDTO userDTO) {
-        List<AbstractCard> cards = abstractCardRepository.findByOwnerName(userDTO.fullName());
+    public List<CardDTO> getByUserId(UUID userId) {
+        List<AbstractCard> cards = abstractCardRepository.findByUserId(userId);
 
         List<CardDTO> result = new ArrayList<>();
 
