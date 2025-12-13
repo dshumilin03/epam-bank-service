@@ -1,18 +1,9 @@
 package com.epam.bank.dtos;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDate;
-import java.util.UUID;
-
-public record DebitCardDTO(
-        @org.hibernate.validator.constraints.UUID
-        UUID id,
-        @NotBlank String cardNumber,
-        @NotNull Integer cvv,
-        @NotNull LocalDate expiresAt,
-        @NotNull String ownerName
-) {
-
+@Getter
+@Setter
+public class DebitCardDTO extends CardDTO {
 }

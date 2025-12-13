@@ -4,7 +4,7 @@ import com.epam.bank.dtos.CreditCardDTO;
 import com.epam.bank.entities.CreditCard;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring", uses = AbstractCardMapper.class)
+@Mapper(componentModel = "spring", uses = CardMapper.class)
 public interface CreditCardMapper {
 
     CreditCard toCreditCard(CreditCardDTO dto);

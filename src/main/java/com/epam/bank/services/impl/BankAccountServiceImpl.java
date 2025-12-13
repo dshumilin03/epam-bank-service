@@ -1,12 +1,14 @@
 package com.epam.bank.services.impl;
 
-import com.epam.bank.dtos.AbstractCardDTO;
 import com.epam.bank.dtos.BankAccountDTO;
+import com.epam.bank.dtos.CardDTO;
+import com.epam.bank.dtos.TransactionDTO;
 import com.epam.bank.entities.*;
 import com.epam.bank.exceptions.ExistsException;
 import com.epam.bank.exceptions.NotFoundException;
-import com.epam.bank.mappers.AbstractCardMapper;
 import com.epam.bank.mappers.BankAccountMapper;
+import com.epam.bank.mappers.CardMapper;
+import com.epam.bank.mappers.TransactionMapper;
 import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.TransactionRepository;
 import com.epam.bank.repositories.UserRepository;
@@ -24,32 +26,34 @@ import java.util.UUID;
 @AllArgsConstructor
 public class BankAccountServiceImpl implements BankAccountService {
     private final BankAccountRepository bankAccountRepository;
-    private final AbstractCardMapper abstractCardMapper;
     private final UserRepository userRepository;
     private final BankAccountMapper bankAccountMapper;
     private final TransactionRepository transactionRepository;
+    private final CardMapper cardMapper;
+    private final TransactionMapper transactionMapper;
 
     @Override
-    public BankAccountDTO create(UUID userId, AbstractCardDTO abstractCardDTO) {
-        AbstractCard abstractCard = abstractCardMapper.toAbstractCard(abstractCardDTO);
-        bankAccountRepository.findByCard(abstractCard).orElseThrow(() -> new ExistsException("Card is attached to bank account"));
-
+    public BankAccountDTO create(UUID userId, CardDTO cardDTO) {
+        bankAccountRepository.findByCardId(cardDTO.getId()).orElseThrow(() -> new ExistsException("Card is attached to bank account"));
         BankAccount newBankAccount = new BankAccount();
 
         newBankAccount.setUser(userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found by Id")));
+        AbstractCard abstractCard = cardMapper.toEntity(cardDTO);
         newBankAccount.setCard(abstractCard);
         newBankAccount.setIncomingTransactions(new ArrayList<>());
         newBankAccount.setOutgoingTransactions(new ArrayList<>());
 
         switch (abstractCard.getType()) {
-            case CardType.DEBIT -> newBankAccount.setMoneyAmount(BigDecimal.valueOf(0));
+            case CardType.DEBIT -> {
+                newBankAccount.setMoneyAmount(BigDecimal.valueOf(0));
+                newBankAccount.setMoneyAmount(BigDecimal.valueOf(0));
+            }
             case CardType.CREDIT -> {
                 CreditCard creditCard = (CreditCard) abstractCard;
                 newBankAccount.setMoneyAmount(creditCard.getCreditLimit());
             }
             default -> throw new IllegalArgumentException("Unknown card type");
         }
-        newBankAccount.setMoneyAmount(BigDecimal.valueOf(0));
 
         return bankAccountMapper.toDTO(bankAccountRepository.save(newBankAccount));
     }
@@ -61,7 +65,10 @@ public class BankAccountServiceImpl implements BankAccountService {
                 .orElseThrow(() -> new NotFoundException("Transaction not found by Id"));
         BankAccount source = transaction.getSource();
         BankAccount target = transaction.getTarget();
+        if (target == null) {
 
+        }
+// todo: нет проверки на недостаток денег
         try {
             source.setMoneyAmount(source.getMoneyAmount().subtract(transaction.getMoneyAmount()));
             target.setMoneyAmount(target.getMoneyAmount().add(transaction.getMoneyAmount()));
@@ -86,10 +93,17 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public List<Transaction> getTransactions(Long id, boolean outgoing) {
+    public List<TransactionDTO> getTransactions(Long id, boolean outgoing) {
         BankAccount bankAccount = bankAccountRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Not found bank account by id (number of account)"));
 
-        return outgoing ? bankAccount.getOutgoingTransactions() : bankAccount.getIncomingTransactions();
+        List<Transaction> transactions = outgoing ? bankAccount.getOutgoingTransactions() : bankAccount.getIncomingTransactions();
+        List<TransactionDTO> transactionDTOS = new ArrayList<>();
+
+        transactions.forEach(transaction -> {
+            transactionDTOS.add(transactionMapper.toTransactionDTO(transaction));
+        });
+
+        return transactionDTOS;
     }
 }

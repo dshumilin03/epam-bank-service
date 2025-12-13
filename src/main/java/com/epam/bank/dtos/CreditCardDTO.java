@@ -1,27 +1,24 @@
 package com.epam.bank.dtos;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-public record CreditCardDTO(
-        @org.hibernate.validator.constraints.UUID
-         UUID id,
-        @NotBlank  String cardNumber,
-        @NotNull  Integer cvv,
-        @NotNull  LocalDate expiresAt,
-        @NotNull  String ownerName,
-        @NotNull
-        Integer interestFreePeriodDaysm,
-        @NotNull
-        Double percentm,
-        @NotNull
-        LocalDateTime nextChargeAt,
-        @NotNull
-        LocalDateTime lastChargeAt
-        ) {
-
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class CreditCardDTO extends CardDTO {
+    @NotNull
+    private Integer interestFreePeriodDays;
+    @NotNull
+    private Double percent;
+    @NotNull
+    LocalDateTime nextChargeAt;
+    @NotNull
+    LocalDateTime lastChargeAt;
 }

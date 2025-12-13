@@ -1,6 +1,7 @@
 package com.epam.bank.services.impl;
 
 import com.epam.bank.dtos.RegisterRequest;
+import com.epam.bank.dtos.UserCredentialsDTO;
 import com.epam.bank.dtos.UserDTO;
 import com.epam.bank.entities.User;
 import com.epam.bank.exceptions.ExistsException;
@@ -27,15 +28,24 @@ public class UserServiceImpl implements UserService {
             throw new ExistsException("User with this data already exists");
         }
         User newUser = userMapper.toUser(registerUserDTO);
-
+        newUser.setIsDisabled(false);
         return userMapper.toUserDTO(userRepository.save(newUser));
     }
 
-    public UserDTO changeCredentials(UserDTO updateDTO) {
-        userRepository.findById(updateDTO.id())
+    public UserDTO changeCredentials(UUID id, UserCredentialsDTO userCredentialsDTO) {
+        User old = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found by Id"));
-        User update = userMapper.toUser(updateDTO);
-        return userMapper.toUserDTO(userRepository.save(update));
+
+        boolean existsByEmail = userRepository.existsByEmail(userCredentialsDTO.email());
+        boolean notSameEmail = !userCredentialsDTO.email().equals(old.getEmail());
+        if (existsByEmail && notSameEmail) {
+            throw new ExistsException("This email is attached to other User");
+        }
+
+        old.setRole(userCredentialsDTO.role());
+        old.setPassword(userCredentialsDTO.password());
+        old.setEmail(userCredentialsDTO.email());
+        return userMapper.toUserDTO(userRepository.save(old));
     }
 
     public UserDTO getById(UUID uuid) {

@@ -15,6 +15,6 @@ public record UserDTO(
         @NotBlank String password,
         @NotNull Boolean isDisabled,
         @NotNull Role role,
-        @NotNull List<BankAccountDTO> bankAccounts
+        List<BankAccountDTO> bankAccounts
 ) {
 }

@@ -1,12 +1,16 @@
 package com.epam.bank.services.impl;
 
+import com.epam.bank.dtos.BankAccountDTO;
 import com.epam.bank.dtos.LoanDTO;
+import com.epam.bank.dtos.LoanRequestDTO;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Loan;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.LoanMapper;
 import com.epam.bank.repositories.LoanRepository;
+import com.epam.bank.services.BankAccountService;
 import com.epam.bank.services.LoanService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +24,7 @@ import java.util.UUID;
 public class LoanServiceImpl implements LoanService {
 
     private final LoanRepository loanRepository;
+    private final BankAccountService bankAccountService;
     private final LoanMapper loanMapper;
 
     @Override
@@ -28,7 +33,7 @@ public class LoanServiceImpl implements LoanService {
         List<Loan> loans = loanRepository.findByUserId(id);
 
         loans.forEach(loan -> {
-            result.add(loanMapper.toLoanDto(loan));
+            result.add(loanMapper.toLoanDTO(loan));
         });
         return result;
     }
@@ -42,7 +47,22 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public LoanDTO open(LoanDTO loanDTO) {
+    @Transactional
+    public LoanDTO open(LoanRequestDTO loanRequestDTO) {
+        LoanDTO loanDTO = loanMapper.toLoanDTO(loanRequestDTO);
+
+        BankAccountDTO bankAccount = bankAccountService.getById(loanRequestDTO.bankAccountNumber());
+        loanDTO.setBankAccount(bankAccount);
+        loanDTO.setCreatedAt(LocalDateTime.now());
+
+        // monthly or daily
+        if (loanRequestDTO.chargeStrategy().name().equals(ChargeStrategyType.MONTHLY.name())) {
+            loanDTO.setNextCharge(LocalDateTime.now().plusMonths(1));
+        } else {
+            loanDTO.setNextCharge(LocalDateTime.now().plusDays(1));
+
+        }
+
         Loan loan = loanMapper.toLoan(loanDTO);
         LocalDateTime now = LocalDateTime.now();
         loan.setCreatedAt(now);
@@ -53,13 +73,31 @@ public class LoanServiceImpl implements LoanService {
             case MONTHLY -> loan.setNextChargeAt(now.plusMonths(1));
             default -> throw new IllegalArgumentException("Unknown strategy type");
         }
-        return loanMapper.toLoanDto(loanRepository.save(loan));
+        return loanMapper.toLoanDTO(loanRepository.save(loan));
     }
 
     @Override
-    public LoanDTO update(LoanDTO loanDTO) {
-        Loan loan = loanMapper.toLoan(loanDTO);
+    public LoanDTO update(UUID transactionId, LoanDTO loanDTO) {
 
-        return loanMapper.toLoanDto(loanRepository.save(loan));
+        Loan loan = loanRepository.findById(transactionId)
+                .orElseThrow(() -> new NotFoundException("Loan not found by Id"));
+
+        Loan loanUpdate = loanMapper.toLoan(loanDTO);
+
+        updateFields(loan, loanUpdate);
+        return loanMapper.toLoanDTO(loanRepository.save(loan));
     }
+
+    private void updateFields(Loan loan, Loan update) {
+
+        loan.setMoneyLeft(update.getMoneyLeft());
+        loan.setCreatedAt(update.getCreatedAt());
+        loan.setPercent(update.getPercent());
+        loan.setTermMoths(update.getTermMoths());
+        loan.setChargeStrategyType(update.getChargeStrategyType());
+        loan.setBankAccount(update.getBankAccount());
+        loan.setNextChargeAt(update.getNextChargeAt());
+        loan.setLastChargeAt(update.getLastChargeAt());
+    }
+
 }

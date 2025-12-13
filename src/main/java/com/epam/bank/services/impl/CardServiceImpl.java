@@ -1,12 +1,12 @@
 package com.epam.bank.services.impl;
 
-import com.epam.bank.dtos.AbstractCardDTO;
+import com.epam.bank.dtos.CardDTO;
 import com.epam.bank.dtos.UserDTO;
 import com.epam.bank.entities.AbstractCard;
 import com.epam.bank.entities.CardStatus;
 import com.epam.bank.entities.CardType;
 import com.epam.bank.exceptions.NotFoundException;
-import com.epam.bank.mappers.AbstractCardMapper;
+import com.epam.bank.mappers.CardMapper;
 import com.epam.bank.repositories.AbstractCardRepository;
 import com.epam.bank.services.CardService;
 import lombok.AllArgsConstructor;
@@ -21,31 +21,31 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CardServiceImpl implements CardService {
     private final AbstractCardRepository abstractCardRepository;
-    private final AbstractCardMapper abstractCardMapper;
+    private final CardMapper cardMapper;
 
     @Override
-    public AbstractCardDTO getByNumber(String cardNumber) {
+    public CardDTO getByNumber(String cardNumber) {
 
         AbstractCard card = abstractCardRepository.findByCardNumber(cardNumber)
                 .orElseThrow(() -> new NotFoundException("Card not found by card number"));
 
-        return abstractCardMapper.toDTO(card);
+        return cardMapper.toDTO(card);
     }
 
     @Override
-    public List<AbstractCardDTO> getByUser(UserDTO userDTO) {
+    public List<CardDTO> getByUser(UserDTO userDTO) {
         List<AbstractCard> cards = abstractCardRepository.findByOwnerName(userDTO.fullName());
 
-        List<AbstractCardDTO> result = new ArrayList<>();
+        List<CardDTO> result = new ArrayList<>();
 
         cards.forEach(card -> {
-            result.add(abstractCardMapper.toDTO(card));
+            result.add(cardMapper.toDTO(card));
         });
         return result;
     }
 
     @Override
-    public AbstractCardDTO create(CardType cardType) {
+    public CardDTO create(UUID userId, CardType cardType) {
         return null;
     }
 
@@ -59,14 +59,14 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public AbstractCardDTO renew(UUID cardId) {
+    public CardDTO renew(UUID cardId) {
         AbstractCard card = abstractCardRepository.findById(cardId)
                 .orElseThrow(() -> new NotFoundException("Card not found by Id"));
 
         card.setExpiresAt(LocalDate.now().plusYears(5));
         abstractCardRepository.save(card);
 
-        return abstractCardMapper.toDTO(card);
+        return cardMapper.toDTO(card);
     }
 
     @Override

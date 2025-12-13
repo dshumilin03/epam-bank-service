@@ -4,21 +4,32 @@ import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 // TODO check cyclic of dto's
-public record TransactionDTO(
-        @org.hibernate.validator.constraints.UUID UUID id,
-        @NotNull LocalDateTime createdAt,
-        @NotNull BigDecimal moneyAmount,
-        @NotBlank String description,
-        @NotBlank TransactionStatus status,
-        @NotBlank TransactionType transactionType,
-        @NotNull BankAccountDTO source,
-        @NotNull BankAccountDTO target
-) {
+@Getter
+@Setter
+public class TransactionDTO {
+    @org.hibernate.validator.constraints.UUID
+    private UUID id;
+    @NotNull
+    private LocalDateTime createdAt;
+    @NotNull
+    private BigDecimal moneyAmount;
+    @NotBlank
+    private String description;
+    @NotBlank
+    private TransactionStatus status;
+    @NotBlank
+    private TransactionType transactionType;
+    @NotNull
+    private BankAccountDTO source;
+    @NotNull
+    private BankAccountDTO target;
 }
 

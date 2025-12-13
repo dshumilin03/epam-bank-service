@@ -11,7 +11,7 @@ public record BankAccountDTO(
         @NotNull Long id,
         @NotNull BigDecimal moneyAmount,
         @NotEmpty UserDTO user,
-        @NotEmpty AbstractCardDTO cardDTO,
+        @NotEmpty CardDTO cardDTO,
         @NotNull List<TransactionDTO> outgoingTransactions,
         @NotNull List<TransactionDTO> incomingTransactions
 ) {
