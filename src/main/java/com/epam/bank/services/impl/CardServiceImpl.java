@@ -10,6 +10,7 @@ import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.CardRepository;
 import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.CardService;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -78,8 +79,7 @@ public class CardServiceImpl implements CardService {
 
         newCard.setCvv(encryptionService.encrypt(cvv));
         newCard.setPinCode(encryptionService.encrypt(pinCode));
-
-        return cardMapper.toDTO(newCard);
+        return cardMapper.toDTO(cardRepository.save(newCard));
     }
 
     @Override

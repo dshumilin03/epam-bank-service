@@ -164,8 +164,8 @@ class TransactionServiceImplTest {
             when(targetDTO.bankAccountNumber()).thenReturn(TARGET_ACCOUNT_ID);
 
             when(mockTransactionDTO.getId()).thenReturn(TRANSACTION_ID);
-            when(mockTransactionDTO.getSource()).thenReturn(sourceDTO);
-            when(mockTransactionDTO.getTarget()).thenReturn(targetDTO);
+            when(mockTransactionDTO.getSourceBankAccountNumber()).thenReturn(sourceDTO.bankAccountNumber());
+            when(mockTransactionDTO.getTargetBankAccountNumber()).thenReturn(targetDTO.bankAccountNumber());
 
             when(bankAccountRepository.findById(SOURCE_ACCOUNT_ID))
                     .thenReturn(Optional.of(sourceEntity));

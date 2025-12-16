@@ -12,7 +12,6 @@ import com.epam.bank.mappers.UserMapper;
 import com.epam.bank.repositories.UserRepository;
 import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.impl.UserServiceImpl;
-import io.jsonwebtoken.security.Password;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -136,9 +135,9 @@ class UserServiceImplTest {
             UserDTO result = userService.changeCredentials(USER_ID, credentialsDTO);
 
             assertThat(result).isEqualTo(expectedDTO);
-            assertThat(result.email()).isEqualTo(newEmail);
-            assertThat(result.password()).isEqualTo("newPass");
-            assertThat(result.role()).isEqualTo(Role.MANAGER);
+            assertThat(result.getEmail()).isEqualTo(newEmail);
+            assertThat(result.getPassword()).isEqualTo("newPass");
+            assertThat(result.getRole()).isEqualTo(Role.MANAGER);
         }
 
         @Test

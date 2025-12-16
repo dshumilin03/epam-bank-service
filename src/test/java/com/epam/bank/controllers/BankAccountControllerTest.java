@@ -59,8 +59,8 @@ public class BankAccountControllerTest {
 
         BankAccountDTO mockSource = new BankAccountDTO(111L, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
         BankAccountDTO mockTarget = new BankAccountDTO(222L, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
-        dto.setSource(mockSource);
-        dto.setTarget(mockTarget);
+        dto.setSourceBankAccountNumber(mockSource.bankAccountNumber());
+        dto.setTargetBankAccountNumber(mockTarget.bankAccountNumber());
         return dto;
     }
 

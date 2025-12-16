@@ -71,7 +71,7 @@ class BankAccountServiceImplTest {
 
             UserDTO userDTO = mock(UserDTO.class);
             BankAccountDTO expectedDTO = new BankAccountDTO(
-                    ACCOUNT_ID, BigDecimal.ZERO, userDTO.id(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>()
+                    ACCOUNT_ID, BigDecimal.ZERO, userDTO.getId(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>()
             );
 
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
@@ -151,7 +151,7 @@ class BankAccountServiceImplTest {
             List<TransactionDTO> result = bankAccountService.getTransactions(ACCOUNT_ID, true);
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0)).isEqualTo(transactionDTO);
+            assertThat(result.getFirst()).isEqualTo(transactionDTO);
             verify(transactionMapper).toDTO(transaction);
         }
 
@@ -174,7 +174,7 @@ class BankAccountServiceImplTest {
             List<TransactionDTO> result = bankAccountService.getTransactions(ACCOUNT_ID, false);
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0)).isEqualTo(transactionDTO);
+            assertThat(result.getFirst()).isEqualTo(transactionDTO);
         }
 
         @Test

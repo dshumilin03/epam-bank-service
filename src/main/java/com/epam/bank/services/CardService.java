@@ -1,7 +1,6 @@
 package com.epam.bank.services;
 
 import com.epam.bank.dtos.CardDTO;
-import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Card;
 
 import java.util.List;

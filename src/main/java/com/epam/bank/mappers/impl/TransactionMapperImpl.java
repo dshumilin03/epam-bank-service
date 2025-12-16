@@ -64,9 +64,12 @@ public class TransactionMapperImpl implements TransactionMapper {
         transactionDTO.setDescription(transaction.getDescription());
         transactionDTO.setStatus(transaction.getStatus());
         transactionDTO.setTransactionType(transaction.getTransactionType());
-        transactionDTO.setSource(bankAccountMapper.toDTO(transaction.getSource()));
-        transactionDTO.setTarget(bankAccountMapper.toDTO(transaction.getTarget()));
-
+        transactionDTO.setSourceBankAccountNumber(transaction.getSource().getBankAccountNumber());
+        if (transaction.getTarget() == null && transaction.getDescription().contains("charge")) {
+            transactionDTO.setTargetBankAccountNumber(null);
+        } else {
+            transactionDTO.setTargetBankAccountNumber(transaction.getTarget().getBankAccountNumber());
+        }
         return transactionDTO;
     }
 

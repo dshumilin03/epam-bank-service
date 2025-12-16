@@ -9,19 +9,17 @@
 <div style="display:flex; justify-content: space-between; margin-top:20px; padding: 0 20px;">
     <div style="width:25%;">
         <h3>Bank Accounts</h3>
+        <form th:action="@{/open-card}" method="post">
+            <button type="submit">Open Card</button>
+        </form>
         <ul>
             <li th:each="card : ${userCards}">
                 <p>Bank account <span th:text="${card.getBankAccountNumber()}"></span></p>
                 <p>Card number <span th:text="${card.getCardNumber()}"></span></p>
                 <p>Expires <span th:text="${card.getExpiresAt()}"></span></p>
                 <p>Balance: <span th:text="${balance}"></span></p>
-                <button th:onclick="'location.href=\'/bank-account/'+ ${acc.bankAccountNumber} +'\''">View</button>
             </li>
         </ul>
-        <form th:action="@{/bank-account}" method="post">
-            <button type="submit">Open Account</button>
-        </form>
-        <button th:if="${bankAccounts.size() > 0}" th:onclick="'location.href=\'/card/open\''">Open Card</button>
     </div>
 
     <div style="width:50%;">
@@ -48,7 +46,7 @@
         </div>
     </div>
 
-    <div style="width:25%;">
+    <div style="widаth:25%;">
         <h3>Actions</h3>
         <button th:onclick="'location.href=\'/charge-payment\''">Pay Charge</button>
         <button th:onclick="'location.href=\'/transfer\''">Transfer</button>

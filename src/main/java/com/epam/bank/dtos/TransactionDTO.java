@@ -27,8 +27,8 @@ public class TransactionDTO {
     @NotNull
     private TransactionType transactionType;
     @NotNull
-    private BankAccountDTO source;
+    private Long sourceBankAccountNumber;
     @NotNull
-    private BankAccountDTO target;
+    private Long targetBankAccountNumber;
 }
 

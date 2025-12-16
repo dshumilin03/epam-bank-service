@@ -47,8 +47,8 @@ class TransactionMapperTest {
         dto.setTransactionType(TransactionType.TRANSFER);
         dto.setCreatedAt(LocalDateTime.now());
         dto.setDescription("Payment");
-        dto.setSource(sourceDTO);
-        dto.setTarget(targetDTO);
+        dto.setSourceBankAccountNumber(sourceDTO.bankAccountNumber());
+        dto.setTargetBankAccountNumber(targetDTO.bankAccountNumber());
 
         Transaction entity = mapper.toEntity(dto);
 
@@ -114,7 +114,7 @@ class TransactionMapperTest {
         assertThat(dto.getStatus()).isEqualTo(transaction.getStatus());
         assertThat(dto.getTransactionType()).isEqualTo(transaction.getTransactionType());
 
-        assertThat(dto.getSource()).isNotNull();
+        assertThat(dto.getSourceBankAccountNumber()).isNotNull();
     }
 
     @Test
@@ -134,7 +134,7 @@ class TransactionMapperTest {
         assertThat(dto.getDescription()).isEqualTo(request.description());
         assertThat(dto.getTransactionType()).isEqualTo(request.transactionType());
 
-        assertThat(dto.getSource()).isNull();
-        assertThat(dto.getTarget()).isNull();
+        assertThat(dto.getSourceBankAccountNumber()).isNull();
+        assertThat(dto.getTargetBankAccountNumber()).isNull();
     }
 }

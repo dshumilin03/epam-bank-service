@@ -15,7 +15,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     @Query("SELECT t FROM Transaction t " +
             "WHERE t.transactionType = :type AND t.status = :status AND " +
-            "(t.source.user.id = :userId OR t.target.user.id = :userId)")
+            "(t.source.user.id = :userId OR t.source.user.id = :userId)")
     List<Transaction> findAllByUserIdAndTypeAndStatus(
             @Param("userId") UUID userId,
             @Param("type") TransactionType type,

@@ -2,6 +2,7 @@ package com.epam.bank.services.impl;
 
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Transaction;
+import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
 import com.epam.bank.mappers.TransactionMapper;
 import com.epam.bank.repositories.TransactionRepository;
@@ -45,8 +46,9 @@ public class ChargeServiceImpl implements ChargeService {
         Transaction newTransaction = Transaction.builder()
                 .source(chargeable.getBankAccount())
                 .createdAt(chargeable.getLastChargeAt())
-                .description("This is Charge")
+                .description("This is charge")
                 .transactionType(TransactionType.CHARGE)
+                .status(TransactionStatus.PENDING)
                 .moneyAmount(chargeAmount)
                 .build();
 

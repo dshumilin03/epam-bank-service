@@ -37,8 +37,8 @@ public class TransactionServiceImpl implements TransactionService {
         BankAccountDTO source = bankAccountService.getById(requestDTO.sourceNumber());
         BankAccountDTO target = bankAccountService.getById(requestDTO.targetNumber());
         TransactionDTO transactionDTO = transactionMapper.toDTO(requestDTO);
-        transactionDTO.setSource(source);
-        transactionDTO.setTarget(target);
+        transactionDTO.setSourceBankAccountNumber(source.bankAccountNumber());
+        transactionDTO.setTargetBankAccountNumber(target.bankAccountNumber());
 
 
         Transaction transaction = setTransactionFields(transactionDTO);
@@ -69,9 +69,9 @@ public class TransactionServiceImpl implements TransactionService {
 
     private Transaction setTransactionFields(TransactionDTO updateDTO) {
         Transaction update = transactionMapper.toEntity(updateDTO);
-        BankAccount sourceEntity = bankAccountRepository.findById(updateDTO.getSource().bankAccountNumber())
+        BankAccount sourceEntity = bankAccountRepository.findById(updateDTO.getSourceBankAccountNumber())
                 .orElseThrow(() -> new NotFoundException("Bank account not found by number"));
-        BankAccount targetEntity = bankAccountRepository.findById(updateDTO.getTarget().bankAccountNumber())
+        BankAccount targetEntity = bankAccountRepository.findById(updateDTO.getTargetBankAccountNumber())
                 .orElseThrow(() -> new NotFoundException("Bank account not found by number"));
         update.setSource(sourceEntity);
         update.setTarget(targetEntity);
@@ -127,7 +127,12 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public void markCompleted(UUID transactionId) {
         Transaction transaction = transactionRepository.findById(transactionId).orElseThrow();
-        transaction.setStatus(TransactionStatus.COMPLETED);
+        if (transaction.getTransactionType() == TransactionType.REFUND) {
+            transaction.setStatus(TransactionStatus.REFUNDED);
+        } else {
+            transaction.setStatus(TransactionStatus.COMPLETED);
+
+        }
         transactionRepository.save(transaction);
     }
 

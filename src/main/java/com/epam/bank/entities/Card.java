@@ -38,7 +38,7 @@ public class Card {
     private CardStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_account_number", referencedColumnName = "bank_account_number", unique = true)
+    @JoinColumn(name = "bank_account_number", referencedColumnName = "bank_account_number")
     private BankAccount bankAccount;
 
 }

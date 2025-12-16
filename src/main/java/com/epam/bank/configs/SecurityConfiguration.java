@@ -36,13 +36,24 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/", "/index", "/login", "/register", "/about-us").permitAll()
+                        .requestMatchers("/", "/login", "/register", "/about-us", "/favicon.ico").permitAll()
 
-                        .requestMatchers("/api/auth/**").permitAll()
-
+                        // configure more deeply
                         .requestMatchers("/api/**").hasAnyRole("USER", "MANAGER")
-
                         .anyRequest().authenticated()
+                )
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .deleteCookies("JWT")
+                        .logoutSuccessUrl("/login")
+                        .permitAll()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(
+                                (request, response, authException) -> {
+                                    response.sendRedirect(request.getContextPath() + "/login");
+                                }
+                        )
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

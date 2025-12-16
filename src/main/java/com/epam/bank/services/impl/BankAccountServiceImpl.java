@@ -58,9 +58,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         List<Transaction> transactions = outgoing ? bankAccount.getOutgoingTransactions() : bankAccount.getIncomingTransactions();
         List<TransactionDTO> transactionDTOS = new ArrayList<>();
 
-        transactions.forEach(transaction -> {
-            transactionDTOS.add(transactionMapper.toDTO(transaction));
-        });
+        transactions.forEach(transaction -> transactionDTOS.add(transactionMapper.toDTO(transaction)));
 
         return transactionDTOS;
     }

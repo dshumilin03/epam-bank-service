@@ -10,6 +10,6 @@ public class DailyChargeStrategy implements ChargeStrategy {
 
         return debt
                 .multiply(BigDecimal.valueOf(1 + (percent / 100))
-                .divide(BigDecimal.valueOf(365), 2, RoundingMode.HALF_UP));
+                .divide(BigDecimal.valueOf(365), 2, RoundingMode.UP));
     }
 }

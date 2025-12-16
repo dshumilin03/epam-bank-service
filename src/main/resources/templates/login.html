@@ -10,7 +10,7 @@
     <h2>Login</h2>
     <form th:action="@{/login}" method="post">
         <div>
-            <input type="email" name="email" placeholder="Email" required/>
+            <input type="email" name="userName" placeholder="Email" required/>
         </div>
         <div>
             <input type="password" name="password" placeholder="Password" required/>
@@ -19,8 +19,8 @@
             <button type="submit">Login</button>
         </div>
     </form>
-    <div th:if="${error}" style="color:red;">
-        <p th:text="${error}"></p>
+    <div th:if="${loginError}" style="color:red;">
+        <p th:text="${loginError}"></p>
     </div>
 </div>
 </body>

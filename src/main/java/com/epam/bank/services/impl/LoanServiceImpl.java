@@ -57,6 +57,7 @@ public class LoanServiceImpl implements LoanService {
         BankAccountDTO bankAccount = bankAccountService.getById(loanRequestDTO.bankAccountNumber());
         loanDTO.setBankAccount(bankAccount);
         loanDTO.setCreatedAt(LocalDateTime.now());
+        loanDTO.setLastChargeAt(loanDTO.getCreatedAt());
 
         // monthly or daily
         if (loanRequestDTO.chargeStrategyType().name().equals(ChargeStrategyType.MONTHLY.name())) {
@@ -82,6 +83,7 @@ public class LoanServiceImpl implements LoanService {
             case MONTHLY -> loan.setNextChargeAt(now.plusMonths(1));
             default -> throw new IllegalArgumentException("Unknown strategy type");
         }
+        bankAccountService.deposit(bankAccount.bankAccountNumber(), loanRequestDTO.moneyLeft());
         return loanMapper.toDTO(loanRepository.save(loan));
     }
 

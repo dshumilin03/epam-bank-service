@@ -13,10 +13,14 @@
                 <a th:href="@{/register}">Register</a>
             </span>
             <span>
+                <a th:href="@{/dashboard}" style="margin-right: 10px;">DashBoard</a>
+            </span>
+            <span>
                 <a th:href="@{/logout}" style="margin-right: 10px;">Logout</a>
-                <a sec:authorize="hasAuthority('ROLE_MANAGER')"
-                   th:href="@{/manager}"
-                   style="margin-right:10px;">Manager</a>
+
+                <a sec:authorize="hasRole('ROLE_MANAGER')"
+                th:href="@{/manager}"
+                style="margin-right:10px;">Manager</a>
             </span>
         </div>
     </div>

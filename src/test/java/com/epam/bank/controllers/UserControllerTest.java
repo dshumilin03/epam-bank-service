@@ -55,14 +55,14 @@ public class UserControllerTest {
 
     private UserDTO createUpdatedUserDTO(UserDTO baseDTO, String newEmail, Boolean newIsDisabled) {
         return new UserDTO(
-                baseDTO.id(),
-                baseDTO.fullName(),
-                baseDTO.passportId(),
-                newEmail != null ? newEmail : baseDTO.email(),
-                baseDTO.password(),
-                newIsDisabled != null ? newIsDisabled : baseDTO.isDisabled(),
-                baseDTO.role(),
-                baseDTO.bankAccount()
+                baseDTO.getId(),
+                baseDTO.getFullName(),
+                baseDTO.getPassportId(),
+                newEmail != null ? newEmail : baseDTO.getEmail(),
+                baseDTO.getPassword(),
+                newIsDisabled != null ? newIsDisabled : baseDTO.getIsDisabled(),
+                baseDTO.getRole(),
+                baseDTO.getBankAccount()
         );
     }
 

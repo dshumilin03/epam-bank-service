@@ -7,8 +7,11 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.UUID;
 
@@ -18,28 +21,56 @@ public class GlobalViewControllerAdvice {
 
     private final UserService userService;
 
-    @ModelAttribute("currentUserFullName")
+    private static final String ANONYMOUS_USER = "anonymousUser";
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ModelAndView handleUserNotFoundException(UsernameNotFoundException ex) {
+
+        ModelAndView mav = new ModelAndView();
+
+        mav.setViewName("redirect:/");
+
+        return mav;
+    }
+
+    @ModelAttribute("userFullName")
     public String getCurrentUserFullName() {
-        return getUserByAuthEmail().fullName();
+        UserDTO user = getUserByAuthEmail();
+        return user != null ? user.getFullName() : "Гость";
     }
 
 
-    @ModelAttribute("currentUserId")
+    @ModelAttribute("userId")
     public UUID getCurrentUserId() {
-        return getUserByAuthEmail().id();
+        UserDTO user = getUserByAuthEmail();
+        return user != null ? user.getId() : null;
     }
 
-    @ModelAttribute("currentUserRole")
+    @ModelAttribute("role")
     public Role getCurrentUserRole() {
-        return getUserByAuthEmail().role();
+        UserDTO user = getUserByAuthEmail();
+        return user != null ? user.getRole() : null;
     }
 
     private UserDTO getUserByAuthEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.isAuthenticated()) {
-            UserDetails details = (UserDetails) authentication.getPrincipal();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (principal instanceof UserDetails details) {
             String email = details.getUsername();
+            if (email.equals(ANONYMOUS_USER)) {
+                return null;
+            }
             return userService.getByEmail(email);
+        }
+
+        if (principal instanceof String && principal.equals(ANONYMOUS_USER)) {
+            return null;
         }
 
         return null;

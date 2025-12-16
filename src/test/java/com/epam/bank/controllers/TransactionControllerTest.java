@@ -56,8 +56,8 @@ public class TransactionControllerTest {
 
         BankAccountDTO mockSource = new BankAccountDTO(SOURCE_ACC, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
         BankAccountDTO mockTarget = new BankAccountDTO(TARGET_ACC, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
-        dto.setSource(mockSource);
-        dto.setTarget(mockTarget);
+        dto.setSourceBankAccountNumber(mockSource.bankAccountNumber());
+        dto.setTargetBankAccountNumber(mockTarget.bankAccountNumber());
         return dto;
     }
 

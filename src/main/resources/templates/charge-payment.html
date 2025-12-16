@@ -9,24 +9,27 @@
 <div style="text-align:center; margin-top:20px;">
     <h2>Loan Payment</h2>
 
-    <div th:if="${bankAccount != null}">
+    <div th:if="${bankAccount != null and (!userCards.isEmpty() or !userCharges.isEmpty())}">
         <form th:action="@{/loan-payment/process}" method="post">
-            <label for="loanSelect">Select Loan:</label>
-            <select name="loanId" id="loanSelect" required>
+
+            <label for="cardSelect">Select Payment Source:</label>
+            <select name="selectCardId" id="cardSelect" required>
                 <option
                         th:each="card : ${userCards}"
                         th:value="${card.getCardNumber()}"
-                        th:text="Card Number">
-
-                </option>
-                <option
-                        th:each="charge : ${userCharges}"
-                        th:value="${charge.getMoneyAmount()}">
+                        th:text="'Card: ' + ${card.getCardNumber()}">
                 </option>
             </select>
-            <br/><br/>
-            <label for="amount">Payment Amount:</label>
-            <input type="number" id="amount" name="amount" min="1" required/>
+
+            <label for="chargeSelect">Select Charge/Transaction to Pay:</label>
+            <select name="transactionId" id="chargeSelect" required>
+                <option
+                        th:each="charge : ${userCharges}"
+                        th:value="${charge.getId()}"
+                        th:text="'ID: ' + ${charge.getId()} + ' | Amount: ' + ${charge.getMoneyAmount()}">
+                </option>
+            </select>
+
             <br/><br/>
             <button type="submit">Pay Charge</button>
         </form>

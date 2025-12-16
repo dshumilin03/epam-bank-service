@@ -57,12 +57,12 @@ class UserMapperTest {
         UserDTO dto = mapper.toDTO(user);
 
         assertThat(dto).isNotNull();
-        assertThat(dto.id()).isEqualTo(user.getId());
-        assertThat(dto.fullName()).isEqualTo(user.getFullName());
-        assertThat(dto.email()).isEqualTo(user.getEmail());
-        assertThat(dto.role()).isEqualTo(user.getRole());
-        assertThat(dto.isDisabled()).isEqualTo(user.getIsDisabled());
-        assertThat(dto.bankAccount().bankAccountNumber()).isEqualTo(bankAccount.getBankAccountNumber());
+        assertThat(dto.getId()).isEqualTo(user.getId());
+        assertThat(dto.getFullName()).isEqualTo(user.getFullName());
+        assertThat(dto.getEmail()).isEqualTo(user.getEmail());
+        assertThat(dto.getRole()).isEqualTo(user.getRole());
+        assertThat(dto.getIsDisabled()).isEqualTo(user.getIsDisabled());
+        assertThat(dto.getBankAccount().bankAccountNumber()).isEqualTo(bankAccount.getBankAccountNumber());
     }
 
     @Test
@@ -91,10 +91,10 @@ class UserMapperTest {
         User entity = mapper.toEntity(dto);
 
         assertThat(entity).isNotNull();
-        assertThat(entity.getId()).isEqualTo(dto.id());
-        assertThat(entity.getFullName()).isEqualTo(dto.fullName());
-        assertThat(entity.getRole()).isEqualTo(dto.role());
-        assertThat(entity.getIsDisabled()).isEqualTo(dto.isDisabled());
-        assertThat(entity.getBankAccount().getBankAccountNumber()).isEqualTo(dto.bankAccount().bankAccountNumber());
+        assertThat(entity.getId()).isEqualTo(dto.getId());
+        assertThat(entity.getFullName()).isEqualTo(dto.getFullName());
+        assertThat(entity.getRole()).isEqualTo(dto.getRole());
+        assertThat(entity.getIsDisabled()).isEqualTo(dto.getIsDisabled());
+        assertThat(entity.getBankAccount().getBankAccountNumber()).isEqualTo(dto.getBankAccount().bankAccountNumber());
     }
 }
