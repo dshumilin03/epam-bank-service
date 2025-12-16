@@ -38,6 +38,13 @@ public class BankAccountController {
         return ResponseEntity.status(HttpStatus.OK).body(transactionDTOS);
     }
 
+    @GetMapping("/transactions/charges/users/{userId}")
+    public ResponseEntity<List<TransactionDTO>> getChargesByUserId(@PathVariable UUID userId) {
+        List<TransactionDTO> transactionDTOS = bankAccountService.getChargesByUserId(userId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(transactionDTOS);
+    }
+
     @GetMapping(value = "/transactions/{userId}", params = "pending=true")
     public ResponseEntity<List<TransactionDTO>> getLoans(@PathVariable UUID userId) {
         List<TransactionDTO> transactionDTOS = bankAccountService.getChargesByUserId(userId);
@@ -46,17 +53,17 @@ public class BankAccountController {
     }
 
     @PatchMapping(value = "/{bankNumber}", params = "action=withdraw")
-    public ResponseEntity<TransactionStatus> withdraw(@PathVariable Long bankNumber, @RequestParam BigDecimal moneyAmount) {
+    public ResponseEntity<String> withdraw(@PathVariable Long bankNumber, @RequestParam BigDecimal moneyAmount) {
         TransactionStatus status = bankAccountService.withdraw(bankNumber, moneyAmount);
 
-        return ResponseEntity.status(HttpStatus.OK).body(status);
+        return ResponseEntity.status(HttpStatus.OK).body(status.toString());
     }
 
     @PatchMapping(value = "/{bankNumber}", params = "action=deposit")
-    public ResponseEntity<TransactionStatus> deposit(@PathVariable Long bankNumber, @RequestParam BigDecimal moneyAmount) {
+    public ResponseEntity<String> deposit(@PathVariable Long bankNumber, @RequestParam BigDecimal moneyAmount) {
         TransactionStatus status = bankAccountService.deposit(bankNumber, moneyAmount);
 
-        return ResponseEntity.status(HttpStatus.OK).body(status);
+        return ResponseEntity.status(HttpStatus.OK).body(status.toString());
     }
 }
 

@@ -14,7 +14,7 @@ import java.util.UUID;
 @Getter
 @Setter
 public class TransactionDTO {
-    @org.hibernate.validator.constraints.UUID
+    @NotNull
     private UUID id;
     @NotNull
     private LocalDateTime createdAt;
@@ -22,9 +22,9 @@ public class TransactionDTO {
     private BigDecimal moneyAmount;
     @NotBlank
     private String description;
-    @NotBlank
+    @NotNull
     private TransactionStatus status;
-    @NotBlank
+    @NotNull
     private TransactionType transactionType;
     @NotNull
     private BankAccountDTO source;

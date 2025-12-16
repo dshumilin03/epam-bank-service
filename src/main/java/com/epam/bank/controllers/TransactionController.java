@@ -33,16 +33,16 @@ public class TransactionController {
     }
 
     @PostMapping("/{transactionId}")
-    public ResponseEntity<TransactionStatus> processTransaction(@PathVariable UUID transactionId) {
+    public ResponseEntity<String> processTransaction(@PathVariable UUID transactionId) {
         TransactionStatus status = transactionService.processTransaction(transactionId);
-        return ResponseEntity.ok().body(status);
+        return ResponseEntity.ok().body(status.toString());
     }
 
     @PatchMapping("/{transactionId}")
-    public ResponseEntity<TransactionStatus> refund(@PathVariable UUID transactionId) {
+    public ResponseEntity<String> refund(@PathVariable UUID transactionId) {
         TransactionStatus status = transactionService.refund(transactionId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(status);
+        return ResponseEntity.status(HttpStatus.OK).body(status.toString());
     }
 
     @PutMapping("/{transactionId}")

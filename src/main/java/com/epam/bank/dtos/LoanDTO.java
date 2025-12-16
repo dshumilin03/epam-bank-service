@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class LoanDTO {
-    @UUID
+    @NotNull
     private java.util.UUID id;
     @NotNull
     private BigDecimal moneyLeft;

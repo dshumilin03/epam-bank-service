@@ -35,7 +35,7 @@ public class LoanController {
         return ResponseEntity.status(HttpStatus.OK).body(loan);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/users/{userId}")
     public ResponseEntity<List<LoanDTO>> getUserLoansByUserId(@PathVariable UUID userId) {
         List<LoanDTO> loans = loanService.getUserLoansByUserId(userId);
 
