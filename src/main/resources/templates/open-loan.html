@@ -4,7 +4,7 @@
     <title>Register - Epam Bank</title>
 </head>
 <body>
-<div th:replace="fragments/header :: header"></div>
+<div th:replace="~{fragments/header :: header}"></div>
 
 <div style="text-align:center; margin-top:50px;">
     <h2>Open loan</h2>
@@ -29,9 +29,6 @@
             <button type="submit">Open Loan</button>
         </div>
     </form>
-    <div th:if="${error}" style="color:red;">
-        <p th:text="${error}"></p>
-    </div>
 </div>
 </body>
 </html>

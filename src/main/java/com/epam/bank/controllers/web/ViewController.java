@@ -178,11 +178,11 @@ public class ViewController {
         } catch (BadCredentialsException e) {
             model.addAttribute("loginError", e.getMessage());
             log.warn(e);
-            return "redirect:/login";
+            return "login";
         } catch (DisabledException e) {
-            redirectAttributes.addFlashAttribute("loginError", "Your account has been disabled. Please contact support.");
+            model.addAttribute("loginError", "Your account has been disabled. Please contact support.");
             log.warn("user disabled, access denied");
-            return "redirect:/login";
+            return "login";
         }
 
         return "redirect:/dashboard";
