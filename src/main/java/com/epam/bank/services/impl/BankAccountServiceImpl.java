@@ -76,19 +76,15 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public List<BankAccountDTO> getByUserId(UUID id) {
-        List<BankAccount> bankAccount = bankAccountRepository.findByUserId((id));
+    public BankAccountDTO getByUserId(UUID id) {
+        BankAccount bankAccount = bankAccountRepository.findByUserId((id))
+                .orElseThrow(() -> new NotFoundException("Not found bank account by bankAccountNumber (number of account)"));
 
-        List<BankAccountDTO> result = new ArrayList<>();
-
-        bankAccount.forEach(account -> {
-            result.add(bankAccountMapper.toDTO(account));
-        });
-        return result;
+        return bankAccountMapper.toDTO(bankAccount);
     }
 
     @Override
-    public List<TransactionDTO> getLoans(UUID userId) {
+    public List<TransactionDTO> getChargesByUserId(UUID userId) {
         List<Transaction> transactions = transactionRepository.findAllByUserIdAndTypeAndStatus(userId, TransactionType.CHARGE, TransactionStatus.PENDING);
         List<TransactionDTO> transactionDTOS = new ArrayList<>();
 

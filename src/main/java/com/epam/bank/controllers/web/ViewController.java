@@ -1,12 +1,15 @@
 package com.epam.bank.controllers.web;
 
 import com.epam.bank.dtos.*;
+import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.TransactionType;
+import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.security.JwtService;
 import com.epam.bank.security.UserDetailsServiceImpl;
 import com.epam.bank.services.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,9 +22,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @Controller
@@ -42,6 +47,23 @@ public class ViewController {
         return "index";
     }
 
+    @GetMapping("/loan")
+    public String loan() {
+        return "open-loan";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/loan")
+    public String openLoan(Model model, BigDecimal moneyLeft, ChargeStrategyType chargeStrategyType, Long termMonths) {
+        UUID userId = (UUID) model.getAttribute("userId");
+        Long bankAccountNumber = userService.getById(userId).bankAccount().bankAccountNumber();
+        Random random = new Random();
+        Double percent = random.nextDouble(10) + 1;
+        LoanRequestDTO loanRequestDTO = new LoanRequestDTO(moneyLeft, percent, chargeStrategyType, bankAccountNumber, termMonths);
+        loanService.open(loanRequestDTO);
+        return "redirect:/dashboard";
+    }
+
     @GetMapping("/about-us")
     public String aboutUs() {
         return "index";
@@ -54,8 +76,8 @@ public class ViewController {
 
     @PostMapping("/login")
     public String login(
-            @RequestParam String email,
-            @RequestParam String password,
+            String email,
+            String password,
             HttpServletResponse response
     ) {
         Authentication auth = authenticationManager.authenticate(
@@ -87,6 +109,7 @@ public class ViewController {
     ) {
 
         UserDTO created = userService.register(registerRequest);
+        bankAccountService.create(created.id());
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(created.email(), created.password())
         );
@@ -109,38 +132,69 @@ public class ViewController {
     public String dashboard(Model model) {
         UUID userId = (UUID) model.getAttribute("userId");
 
-        List<BankAccountDTO> bankAccounts = bankAccountService.getByUserId(userId);
+        BankAccountDTO bankAccount = bankAccountService.getByUserId(userId);
         List<CardDTO> cards = cardService.getByUserId(userId);
         model.addAttribute("userLoans", loanService.getUserLoansByUserId(userId));
-
+        model.addAttribute("charges", bankAccountService.getChargesByUserId(userId));
         model.addAttribute("userCards", cards);
+        model.addAttribute("balance", bankAccount.moneyAmount());
 
-        model.addAttribute("bankAccounts", bankAccounts);
+        model.addAttribute("bankAccount", bankAccount);
 
         return "dashboard";
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/manager")
     public String managerDashboard(Model model, @RequestParam(name = "full_name", required = false) String fullName) {
 
-        if (fullName != null) {
-            UserDTO foundUser = userService.getByFullName(fullName);
-            model.addAttribute("foundUser", foundUser);
-            Long accountNumber = foundUser.bankAccount().bankAccountNumber();
-            model.addAttribute("userOutgoingTransactions", bankAccountService.getTransactions(accountNumber, true));
-            model.addAttribute("userIncomingTransactions", bankAccountService.getTransactions(accountNumber, false));
+        if (fullName != null && !fullName.trim().isEmpty()) {
+            try {
+                UserDTO foundUser = userService.getByFullName(fullName.trim());
+                model.addAttribute("foundUser", foundUser);
+                Long accountNumber = foundUser.bankAccount().bankAccountNumber();
+                model.addAttribute("accountNumber", accountNumber);
+
+                model.addAttribute("userOutgoingTransactions", bankAccountService.getTransactions(accountNumber, true));
+                model.addAttribute("userIncomingTransactions", bankAccountService.getTransactions(accountNumber, false));
+
+                model.addAttribute("searchError", null);
+            } catch (NotFoundException e) {
+
+                model.addAttribute("foundUser", null);
+                model.addAttribute("searchError", "User: '" + fullName.trim() + "' not found");
+            }
         }
+
         return "manager";
     }
 
+    @PreAuthorize("hasRole('MANAGER')")
+    @PostMapping("/manager")
+    public String rollback(UUID transactionId, RedirectAttributes redirectAttributes) {
+
+        try {
+            transactionService.refund(transactionId);
+            redirectAttributes.addFlashAttribute("rollbackSuccess", true);
+
+        } catch (NotFoundException | IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("rollbackError", "Refund error : " + e.getMessage());
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("rollbackError", "Unknown error: " + e.getMessage());
+        }
+
+        return "redirect:/manager";
+    }
+
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/loan-payment")
-    public String loanPayment(Model model) {
+    @GetMapping("/charge-payment")
+    public String chargePayment(Model model) {
         UUID userId = (UUID) model.getAttribute("userId");
         model.addAttribute("userCards", cardService.getByUserId(userId));
-        model.addAttribute("userCharges", bankAccountService.getLoans(userId));
-        return "loan-payment";
+        model.addAttribute("userCharges", bankAccountService.getChargesByUserId(userId));
+        model.addAttribute("bankAccount", bankAccountService.getByUserId(userId));
+        return "charge-payment";
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -164,6 +218,7 @@ public class ViewController {
     public String transfer(Model model) {
         UUID userId = (UUID) model.getAttribute("userId");
         model.addAttribute("userCards", cardService.getByUserId(userId));
+        model.addAttribute("bankAccount", bankAccountService.getByUserId(userId));
         return "transfer";
     }
 

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<header>
+    <div style="display:flex; justify-content: space-between; align-items: center; padding: 10px;">
+        <div>
+            <a th:href="@{/}" style="font-weight:bold; font-size: 24px;">Epam Bank</a>
+        </div>
+        <div>
+            <a th:href="@{/about-us}" style="margin-right: 15px;">About Us</a>
+            <span>
+                <a th:href="@{/login}" style="margin-right: 10px;">Login</a>
+                <a th:href="@{/register}">Register</a>
+            </span>
+            <span>
+                <a th:href="@{/logout}" style="margin-right: 10px;">Logout</a>
+                <a sec:authorize="hasAuthority('ROLE_MANAGER')"
+                   th:href="@{/manager}"
+                   style="margin-right:10px;">Manager</a>
+            </span>
+        </div>
+    </div>
+</header>
+</body>
+</html>

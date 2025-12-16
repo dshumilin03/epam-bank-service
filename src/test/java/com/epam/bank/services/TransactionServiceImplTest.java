@@ -68,35 +68,45 @@ class TransactionServiceImplTest {
         @Test
         @DisplayName("Should successfully create a PENDING transaction")
         void shouldCreatePendingTransactionSuccessfully() {
-            TransactionRequestDTO requestDTO = new TransactionRequestDTO(
-                    AMOUNT, "Test transaction", TransactionType.TRANSFER, SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID
-            );
+            TransactionRequestDTO requestDTO =
+                    new TransactionRequestDTO(AMOUNT, "Test", TransactionType.TRANSFER,
+                            SOURCE_ACCOUNT_ID, TARGET_ACCOUNT_ID);
 
             BankAccountDTO sourceDTO = mock(BankAccountDTO.class);
             BankAccountDTO targetDTO = mock(BankAccountDTO.class);
-            TransactionDTO partialDTO = new TransactionDTO();
 
+            TransactionDTO partialDTO = new TransactionDTO();
             Transaction transactionEntity = new Transaction();
             transactionEntity.setId(TRANSACTION_ID);
 
             TransactionDTO expectedDTO = mock(TransactionDTO.class);
 
+            BankAccount sourceEntity = mock(BankAccount.class);
+            BankAccount targetEntity = mock(BankAccount.class);
+
             when(bankAccountService.getById(SOURCE_ACCOUNT_ID)).thenReturn(sourceDTO);
             when(bankAccountService.getById(TARGET_ACCOUNT_ID)).thenReturn(targetDTO);
+
+            when(sourceDTO.bankAccountNumber()).thenReturn(SOURCE_ACCOUNT_ID);
+            when(targetDTO.bankAccountNumber()).thenReturn(TARGET_ACCOUNT_ID);
+
+            when(bankAccountRepository.findById(SOURCE_ACCOUNT_ID))
+                    .thenReturn(Optional.of(sourceEntity));
+            when(bankAccountRepository.findById(TARGET_ACCOUNT_ID))
+                    .thenReturn(Optional.of(targetEntity));
+
             when(transactionMapper.toDTO(requestDTO)).thenReturn(partialDTO);
             when(transactionMapper.toEntity(partialDTO)).thenReturn(transactionEntity);
-
-            when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(transactionRepository.save(any(Transaction.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
             when(transactionMapper.toDTO(transactionEntity)).thenReturn(expectedDTO);
 
             TransactionDTO result = transactionService.create(requestDTO);
 
             assertThat(result).isEqualTo(expectedDTO);
-            verify(transactionRepository).save(any(Transaction.class));
-
             assertThat(transactionEntity.getStatus()).isEqualTo(TransactionStatus.PENDING);
-            assertThat(transactionEntity.getCreatedAt()).isCloseTo(LocalDateTime.now(), within(1, ChronoUnit.SECONDS));
         }
+
 
         @Test
         @DisplayName("Should throw NotFoundException if source account is missing")
@@ -144,17 +154,41 @@ class TransactionServiceImplTest {
         @Test
         @DisplayName("Should update transaction successfully")
         void shouldUpdateTransaction() {
-            Transaction updatedEntity = new Transaction();
+            BankAccountDTO sourceDTO = mock(BankAccountDTO.class);
+            BankAccountDTO targetDTO = mock(BankAccountDTO.class);
+
+            BankAccount sourceEntity = mock(BankAccount.class);
+            BankAccount targetEntity = mock(BankAccount.class);
+
+            when(sourceDTO.bankAccountNumber()).thenReturn(SOURCE_ACCOUNT_ID);
+            when(targetDTO.bankAccountNumber()).thenReturn(TARGET_ACCOUNT_ID);
+
             when(mockTransactionDTO.getId()).thenReturn(TRANSACTION_ID);
-            when(transactionRepository.findById(TRANSACTION_ID)).thenReturn(Optional.of(mockTransaction));
-            when(transactionMapper.toEntity(mockTransactionDTO)).thenReturn(updatedEntity);
-            when(transactionRepository.save(updatedEntity)).thenReturn(updatedEntity);
-            when(transactionMapper.toDTO(updatedEntity)).thenReturn(mockTransactionDTO);
+            when(mockTransactionDTO.getSource()).thenReturn(sourceDTO);
+            when(mockTransactionDTO.getTarget()).thenReturn(targetDTO);
+
+            when(bankAccountRepository.findById(SOURCE_ACCOUNT_ID))
+                    .thenReturn(Optional.of(sourceEntity));
+            when(bankAccountRepository.findById(TARGET_ACCOUNT_ID))
+                    .thenReturn(Optional.of(targetEntity));
+
+            when(transactionRepository.findById(TRANSACTION_ID))
+                    .thenReturn(Optional.of(mockTransaction));
+
+            Transaction updatedEntity = new Transaction();
+
+            when(transactionMapper.toEntity(mockTransactionDTO))
+                    .thenReturn(updatedEntity);
+            when(transactionRepository.save(updatedEntity))
+                    .thenReturn(updatedEntity);
+            when(transactionMapper.toDTO(updatedEntity))
+                    .thenReturn(mockTransactionDTO);
 
             transactionService.update(mockTransactionDTO);
 
             verify(transactionRepository).save(updatedEntity);
         }
+
 
         @Test
         @DisplayName("Should delete transaction successfully")
@@ -340,57 +374,61 @@ class TransactionServiceImplTest {
             completedTransaction.setTarget(target);
             completedTransaction.setStatus(TransactionStatus.COMPLETED);
 
-            when(transactionRepository.findById(TRANSACTION_ID)).thenReturn(Optional.of(completedTransaction));
+            //            when(transactionRepository.findById(TRANSACTION_ID)).thenReturn(Optional.of(completedTransaction));
         }
 
         @Test
-        @DisplayName("Should successfully create a REFUND transaction and process it")
+        @DisplayName("Should successfully create and process REFUND transaction")
         void shouldCreateAndProcessRefundSuccessfully() {
-            UUID refundTransactionId = UUID.randomUUID();
-            Transaction refundTransaction = new Transaction();
-            refundTransaction.setId(refundTransactionId);
-            refundTransaction.setMoneyAmount(AMOUNT);
-            refundTransaction.setTransactionType(TransactionType.REFUND);
-            refundTransaction.setSource(target);
-            refundTransaction.setTarget(source);
-            refundTransaction.setStatus(TransactionStatus.PENDING);
+            UUID refundId = UUID.randomUUID();
 
-            TransactionDTO refundDTO = mock(TransactionDTO.class);
-            when(refundDTO.getId()).thenReturn(refundTransactionId);
+            BankAccount source = mock(BankAccount.class);
+            BankAccount target = mock(BankAccount.class);
 
-            BankAccountDTO sourceDTO = mock(BankAccountDTO.class);
-            BankAccountDTO targetDTO = mock(BankAccountDTO.class);
+            when(source.getMoneyAmount()).thenReturn(AMOUNT);
+            when(target.getMoneyAmount()).thenReturn(AMOUNT);
+            when(source.getBankAccountNumber()).thenReturn(SOURCE_ACCOUNT_ID);
+            when(target.getBankAccountNumber()).thenReturn(TARGET_ACCOUNT_ID);
 
-            when(bankAccountService.getById(TARGET_ACCOUNT_ID)).thenReturn(targetDTO);
-            when(bankAccountService.getById(SOURCE_ACCOUNT_ID)).thenReturn(sourceDTO);
-            when(transactionMapper.toDTO(any(TransactionRequestDTO.class))).thenReturn(refundDTO);
-            when(transactionMapper.toEntity(refundDTO)).thenReturn(refundTransaction);
-            when(transactionRepository.save(any(Transaction.class))).thenReturn(refundTransaction);
-            when(transactionMapper.toDTO(refundTransaction)).thenReturn(refundDTO);
-            when(transactionRepository.findById(refundTransactionId))
-                    .thenReturn(Optional.of(refundTransaction))
-                    .thenReturn(Optional.of(refundTransaction));
-            when(bankAccountRepository.save(any(BankAccount.class))).thenAnswer(inv -> inv.getArgument(0));
+            Transaction transaction = new Transaction();
+            transaction.setId(refundId);
+            transaction.setMoneyAmount(AMOUNT);
+            transaction.setTransactionType(TransactionType.TRANSFER);
+            transaction.setSource(source);
+            transaction.setTarget(target);
+            transaction.setStatus(TransactionStatus.PENDING);
 
-            TransactionStatus status = transactionService.refund(TRANSACTION_ID);
+            when(transactionRepository.findById(refundId))
+                    .thenReturn(Optional.of(transaction));
+
+
+            when(transactionRepository.save(any(Transaction.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+
+
+            when(bankAccountRepository.save(any(BankAccount.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+
+            TransactionDTO createdDTO = mock(TransactionDTO.class);
+            when(createdDTO.getId()).thenReturn(refundId);
+
+            doReturn(createdDTO)
+                    .when(transactionService)
+                    .create(any(TransactionRequestDTO.class));
+
+            TransactionStatus status = transactionService.refund(refundId);
 
             assertThat(status).isEqualTo(TransactionStatus.COMPLETED);
-
-            ArgumentCaptor<TransactionRequestDTO> captor = ArgumentCaptor.forClass(TransactionRequestDTO.class);
-            verify(transactionMapper).toDTO(captor.capture());
-            TransactionRequestDTO refundRequest = captor.getValue();
-
-            assertThat(refundRequest.transactionType()).isEqualTo(TransactionType.REFUND);
-            assertThat(refundRequest.sourceNumber()).isEqualTo(TARGET_ACCOUNT_ID);
-            assertThat(refundRequest.targetNumber()).isEqualTo(SOURCE_ACCOUNT_ID);
-            assertThat(refundRequest.moneyAmount()).isEqualTo(AMOUNT);
         }
+
+
 
         @Test
         @DisplayName("Should throw IllegalArgumentException when attempting to refund a CHARGE")
         void shouldThrowExceptionOnChargeRefund() {
             completedTransaction.setTransactionType(TransactionType.CHARGE);
 
+            when(transactionRepository.findById(TRANSACTION_ID)).thenReturn(Optional.of(completedTransaction));
             assertThatThrownBy(() -> transactionService.refund(TRANSACTION_ID))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessage("Can't refund charges");

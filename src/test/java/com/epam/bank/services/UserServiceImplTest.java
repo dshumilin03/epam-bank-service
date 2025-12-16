@@ -10,7 +10,9 @@ import com.epam.bank.exceptions.ExistsException;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.UserMapper;
 import com.epam.bank.repositories.UserRepository;
+import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.impl.UserServiceImpl;
+import io.jsonwebtoken.security.Password;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -37,6 +40,12 @@ class UserServiceImplTest {
 
     @Mock
     private UserMapper userMapper;
+
+    @Mock
+    private EncryptionService encryptionService;
+
+    @Mock
+    private PasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserServiceImpl userService;
@@ -127,9 +136,9 @@ class UserServiceImplTest {
             UserDTO result = userService.changeCredentials(USER_ID, credentialsDTO);
 
             assertThat(result).isEqualTo(expectedDTO);
-            assertThat(existingUser.getEmail()).isEqualTo(newEmail);
-            assertThat(existingUser.getPassword()).isEqualTo("newPass");
-            assertThat(existingUser.getRole()).isEqualTo(Role.MANAGER);
+            assertThat(result.email()).isEqualTo(newEmail);
+            assertThat(result.password()).isEqualTo("newPass");
+            assertThat(result.role()).isEqualTo(Role.MANAGER);
         }
 
         @Test

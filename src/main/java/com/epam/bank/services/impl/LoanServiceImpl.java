@@ -74,7 +74,7 @@ public class LoanServiceImpl implements LoanService {
         ChargeStrategyType strategyType = loan.getChargeStrategyType();
 
         if (strategyType == null) {
-            throw new IllegalArgumentException("Strategy type is null");
+            throw new IllegalArgumentException("Unknown strategy type");
         }
 
         switch (strategyType) {

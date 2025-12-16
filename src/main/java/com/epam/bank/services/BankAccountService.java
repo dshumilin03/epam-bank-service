@@ -19,7 +19,7 @@ public interface BankAccountService {
 
     TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount);
 
-    List<BankAccountDTO> getByUserId(UUID id);
+    BankAccountDTO getByUserId(UUID id);
 
-    List<TransactionDTO> getLoans(UUID userId);
+    List<TransactionDTO> getChargesByUserId(UUID userId);
 }

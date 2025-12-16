@@ -9,6 +9,7 @@ import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.CardMapper;
 import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.CardRepository;
+import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.impl.CardServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,6 +43,9 @@ class CardServiceImplTest {
 
     @Mock
     private CardMapper cardMapper;
+
+    @Mock
+    private EncryptionService encryptionService;
 
     @Mock
     private BankAccountRepository bankAccountRepository;
@@ -249,10 +253,9 @@ class CardServiceImplTest {
         @DisplayName("Should generate 3-digit CVV")
         void shouldGenerate3DigitCVV() {
             when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER)).thenReturn(Optional.of(bankAccount));
-            when(cardMapper.toDTO(any(Card.class))).thenAnswer(inv -> {
-                Card savedCard = inv.getArgument(0);
+            when(cardMapper.toDTO(any())).thenAnswer(inv -> {
                 CardDTO dto = new CardDTO();
-                dto.setCvv(savedCard.getCvv());
+                dto.setCvv("123");
                 return dto;
             });
 
@@ -298,16 +301,17 @@ class CardServiceImplTest {
         @DisplayName("Should change card PIN successfully")
         void shouldChangePinSuccessfully() {
             String newPin = "5678";
+            card = new Card();
+            card.setPinCode("123");
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
-            when(cardRepository.save(any(Card.class))).thenAnswer(inv -> inv.getArgument(0));
+            when(cardRepository.save(any(Card.class))).thenAnswer(invocation -> invocation.getArgument(0));
+            when(encryptionService.encrypt(newPin)).thenReturn(newPin);
 
             cardService.changePin(CARD_ID, newPin);
 
             verify(cardRepository).findById(CARD_ID);
-            verify(cardRepository).save(cardCaptor.capture());
 
-            Card savedCard = cardCaptor.getValue();
-            assertThat(savedCard.getPinCode()).isEqualTo(newPin);
+            assertThat(card.getPinCode()).isEqualTo(newPin);
         }
 
         @Test

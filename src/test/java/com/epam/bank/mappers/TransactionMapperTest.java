@@ -7,6 +7,7 @@ import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Transaction;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
+import com.epam.bank.mappers.impl.TransactionMapperImpl;
 import lombok.AllArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ import static org.mockito.Mockito.when;
 class TransactionMapperTest {
 
     @InjectMocks
-    private TransactionMapper mapper = Mappers.getMapper(TransactionMapper.class);
+    private TransactionMapper mapper = new TransactionMapperImpl();
 
     @Mock
     private BankAccountMapper bankAccountMapper;

@@ -7,6 +7,7 @@ import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Loan;
 import com.epam.bank.exceptions.NotFoundException;
+import com.epam.bank.mappers.BankAccountMapper;
 import com.epam.bank.mappers.LoanMapper;
 import com.epam.bank.repositories.LoanRepository;
 import com.epam.bank.services.impl.LoanServiceImpl;
@@ -44,6 +45,9 @@ class LoanServiceImplTest {
 
     @Mock
     private LoanMapper loanMapper;
+
+    @Mock
+    private BankAccountMapper bankAccountMapper;
 
     @InjectMocks
     private LoanServiceImpl loanService;

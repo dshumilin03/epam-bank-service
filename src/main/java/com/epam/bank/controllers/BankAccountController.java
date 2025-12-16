@@ -40,7 +40,7 @@ public class BankAccountController {
 
     @GetMapping(value = "/transactions/{userId}", params = "pending=true")
     public ResponseEntity<List<TransactionDTO>> getLoans(@PathVariable UUID userId) {
-        List<TransactionDTO> transactionDTOS = bankAccountService.getLoans(userId);
+        List<TransactionDTO> transactionDTOS = bankAccountService.getChargesByUserId(userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(transactionDTOS);
     }

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Dashboard - Epam Bank</title>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div style="display:flex; justify-content: space-between; margin-top:20px; padding: 0 20px;">
+    <!-- Левая колонка: счета и карты -->
+    <div style="width:25%;">
+        <h3>Bank Accounts</h3>
+        <ul>
+            <li th:each="card : ${userCards}">
+                <p>Bank account <span th:text="${card.getBankAccountNumber()}"></span></p>
+                <p>Card number <span th:text="${card.getCardNumber()}"></span></p>
+                <p>Expires <span th:text="${card.getExpiresAt()}"></span></p>
+                <p>Balance: <span th:text="${balance}"></span></p>
+                <button th:onclick="'location.href=\'/bank-account/'+ ${acc.bankAccountNumber} +'\''">View</button>
+            </li>
+        </ul>
+        <form th:action="@{/bank-account}" method="post">
+            <button type="submit">Open Account</button>
+        </form>
+        <button th:if="${bankAccounts.size() > 0}" th:onclick="'location.href=\'/card/open\''">Open Card</button>
+    </div>
+
+    <!-- Средняя колонка: информация по выбранной карте/счету -->
+    <div style="width:50%;">
+        <h3>Account Info</h3>
+        <span>
+                <a th:href="@{/loan}" style="margin-right: 10px;">Open loan</a>
+        </span>
+
+        <div th:if="${userLoans != null && !userLoans.isEmpty()}">
+            <h4>Loans</h4>
+            <li th:each="loan : ${userLoans}">
+                <p>Charge strategy: <span th:text="${loan.getChargeStrategyType().name()}"></span></p>
+                <p>Loan from <span th:text="${loan.getCreatedAt()}"></span></p>
+                <p>Left debt <span th:text="${loan.getMoneyLeft()}"></span></p>
+                <p>Term for <span th:text="${loan.getTermMonths()}"></span></p>
+                <p>Percent <span th:text="${loan.getPercent()}"></span></p>
+            </li>
+            <h4>Upcoming Charges</h4>
+            <ul>
+                <li th:each="charge : ${charges}">
+                    <span th:text="${charge.description}"></span>: <span th:text="${charge.moneyAmount}"></span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Правая колонка: платежи и переводы -->
+    <div style="width:25%;">
+        <h3>Actions</h3>
+        <button th:onclick="'location.href=\'/charge-payment\''">Pay Charge</button>
+        <button th:onclick="'location.href=\'/transfer\''">Transfer</button>
+    </div>
+</div>
+</body>
+</html>
