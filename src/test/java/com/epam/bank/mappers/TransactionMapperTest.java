@@ -97,16 +97,6 @@ class TransactionMapperTest {
                 .target(new BankAccount())
                 .build();
 
-        when(bankAccountMapper.toDTO(any(BankAccount.class)))
-                .thenAnswer(invocation -> {
-                    BankAccount source = invocation.getArgument(0);
-                    return new BankAccountDTO(
-                            source.getBankAccountNumber(),
-                            source.getMoneyAmount(),
-                            null, null, null, null
-                    );
-                });
-
 
         TransactionDTO dto = mapper.toDTO(transaction);
 

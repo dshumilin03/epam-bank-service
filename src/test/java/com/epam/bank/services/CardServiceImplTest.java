@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.within;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -187,31 +188,41 @@ class CardServiceImplTest {
     @DisplayName("Tests for create()")
     class CreateTests {
 
-        @Test
-        @DisplayName("Should create card successfully")
-        void shouldCreateCardSuccessfully() {
-            when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER)).thenReturn(Optional.of(bankAccount));
-            when(cardMapper.toDTO(any(Card.class))).thenReturn(cardDTO);
+        @BeforeEach
+        void setUpCreate() {
+            when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER))
+                    .thenReturn(Optional.of(bankAccount));
 
+            lenient().when(encryptionService.encrypt(anyString()))
+                    .thenAnswer(inv -> "ENCRYPTED_" + inv.getArgument(0));
+
+            lenient().when(cardRepository.save(any(Card.class)))
+                    .thenAnswer(inv -> inv.getArgument(0));
+
+            lenient().when(cardMapper.toDTO(any(Card.class))).thenAnswer(inv -> {
+                Card c = inv.getArgument(0);
+                CardDTO dto = new CardDTO();
+                dto.setCardNumber(c.getCardNumber());
+                dto.setExpiresAt(c.getExpiresAt());
+                dto.setOwnerName(c.getOwnerName());
+                return dto;
+            });
+        }
+
+        @Test
+        @DisplayName("Should create card successfully (Overall Check)")
+        void shouldCreateCardSuccessfully() {
             CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
             assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(cardDTO);
             verify(bankAccountRepository).findById(BANK_ACCOUNT_NUMBER);
+            verify(cardRepository).save(any(Card.class));
             verify(cardMapper).toDTO(any(Card.class));
         }
 
         @Test
         @DisplayName("Should generate card number with correct format")
         void shouldGenerateCardNumberWithCorrectFormat() {
-            when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER)).thenReturn(Optional.of(bankAccount));
-            when(cardMapper.toDTO(any(Card.class))).thenAnswer(inv -> {
-                Card savedCard = inv.getArgument(0);
-                CardDTO dto = new CardDTO();
-                dto.setCardNumber(savedCard.getCardNumber());
-                return dto;
-            });
-
             CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
             assertThat(result.getCardNumber()).startsWith("4043");
@@ -221,63 +232,32 @@ class CardServiceImplTest {
         @Test
         @DisplayName("Should set card expiration to 5 years from now")
         void shouldSetExpirationTo5Years() {
-            when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER)).thenReturn(Optional.of(bankAccount));
-            when(cardMapper.toDTO(any(Card.class))).thenAnswer(inv -> {
-                Card savedCard = inv.getArgument(0);
-                CardDTO dto = new CardDTO();
-                dto.setExpiresAt(savedCard.getExpiresAt());
-                return dto;
-            });
-
             CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
-            assertThat(result.getExpiresAt()).isCloseTo(LocalDate.now().plusYears(5), within(1, ChronoUnit.DAYS));
+            assertThat(result.getExpiresAt())
+                    .isCloseTo(LocalDate.now().plusYears(5), within(1, ChronoUnit.DAYS));
         }
 
         @Test
         @DisplayName("Should set card status to ACTIVE")
         void shouldSetCardStatusToActive() {
-            when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER)).thenReturn(Optional.of(bankAccount));
-            when(cardMapper.toDTO(any(Card.class))).thenAnswer(inv -> {
-                Card savedCard = inv.getArgument(0);
-                assertThat(savedCard.getStatus()).isEqualTo(CardStatus.ACTIVE);
-                return cardDTO;
-            });
-
             cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
-            verify(cardMapper).toDTO(any(Card.class));
-        }
+            verify(cardRepository).save(cardCaptor.capture());
+            Card savedCard = cardCaptor.getValue();
 
-        @Test
-        @DisplayName("Should generate 3-digit CVV")
-        void shouldGenerate3DigitCVV() {
-            when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER)).thenReturn(Optional.of(bankAccount));
-            when(cardMapper.toDTO(any())).thenAnswer(inv -> {
-                CardDTO dto = new CardDTO();
-                dto.setCvv("123");
-                return dto;
-            });
-
-            CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
-
-            assertThat(result.getCvv()).hasSize(3);
-            assertThat(result.getCvv()).matches("\\d{3}");
+            assertThat(savedCard.getStatus()).isEqualTo(CardStatus.ACTIVE);
         }
 
         @Test
         @DisplayName("Should set owner name from bank account user")
         void shouldSetOwnerNameFromBankAccountUser() {
-            when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER)).thenReturn(Optional.of(bankAccount));
-            when(cardMapper.toDTO(any(Card.class))).thenAnswer(inv -> {
-                Card savedCard = inv.getArgument(0);
-                assertThat(savedCard.getOwnerName()).isEqualTo(FULL_NAME);
-                return cardDTO;
-            });
+            CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
-            cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
+            assertThat(result.getOwnerName()).isEqualTo(FULL_NAME);
 
-            verify(cardMapper).toDTO(any(Card.class));
+            verify(cardRepository).save(cardCaptor.capture());
+            assertThat(cardCaptor.getValue().getOwnerName()).isEqualTo(FULL_NAME);
         }
 
         @Test
@@ -289,7 +269,8 @@ class CardServiceImplTest {
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("BankAccount not found by number");
 
-            verify(cardMapper, never()).toDTO(any());
+            verify(cardRepository, never()).save(any());
+            verify(encryptionService, never()).encrypt(anyString());
         }
     }
 

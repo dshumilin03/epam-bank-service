@@ -38,7 +38,6 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register", "/about-us", "/favicon.ico").permitAll()
 
-                        // configure more deeply
                         .requestMatchers("/api/**").hasAnyRole("USER", "MANAGER")
                         .anyRequest().authenticated()
                 )

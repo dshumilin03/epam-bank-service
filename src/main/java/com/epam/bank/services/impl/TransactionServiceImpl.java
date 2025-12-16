@@ -94,8 +94,7 @@ public class TransactionServiceImpl implements TransactionService {
             doMoneyTransfer(transaction);
             markCompleted(transactionId);
             return TransactionStatus.COMPLETED;
-        } catch (RuntimeException e) {
-            markFailed(transactionId);
+        } catch (InsufficientFundsException e) {
             throw e;
         }
     }
@@ -115,13 +114,6 @@ public class TransactionServiceImpl implements TransactionService {
             bankAccountRepository.save(target);
         }
         bankAccountRepository.save(source);
-    }
-
-    @Transactional
-    public void markFailed(UUID transactionId) {
-        Transaction transaction = transactionRepository.findById(transactionId).orElseThrow();
-        transaction.setStatus(TransactionStatus.FAILED);
-        transactionRepository.save(transaction);
     }
 
     @Transactional

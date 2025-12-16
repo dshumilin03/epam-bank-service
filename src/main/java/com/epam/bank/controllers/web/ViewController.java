@@ -2,8 +2,10 @@ package com.epam.bank.controllers.web;
 
 import com.epam.bank.dtos.*;
 import com.epam.bank.entities.ChargeStrategyType;
+import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
 import com.epam.bank.exceptions.ExistsException;
+import com.epam.bank.exceptions.InsufficientFundsException;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.security.EncryptionService;
 import com.epam.bank.security.JwtService;
@@ -12,7 +14,9 @@ import com.epam.bank.services.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,14 +26,10 @@ import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -40,6 +40,7 @@ import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
+@Log4j2
 public class ViewController {
 
     private final AuthenticationManager authenticationManager;
@@ -80,8 +81,10 @@ public class ViewController {
             redirectAttributes.addFlashAttribute("toggleSuccess",
                     "User " + userId + " successfully " + (!currentStatus ? "DISABLED" : "ACTIVATED"));
 
+            log.info("successfully changed user status");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("toggleError", "Error toggling status: " + e.getMessage());
+            log.warn(e);
         }
 
         if (fullName != null && !fullName.trim().isEmpty()) {
@@ -101,6 +104,7 @@ public class ViewController {
         Double percent = random.nextDouble(10) + 1;
         LoanRequestDTO loanRequestDTO = new LoanRequestDTO(moneyLeft, percent, chargeStrategyType, bankAccountNumber, termMonths);
         loanService.open(loanRequestDTO);
+        log.info("successfully opened loan");
         return "redirect:/dashboard";
     }
 
@@ -121,7 +125,7 @@ public class ViewController {
         if (authentication != null) {
             logoutHandler.logout(request, response, authentication);
         }
-
+        log.info("successfully logged out");
         return "redirect:/";
     }
 
@@ -137,9 +141,10 @@ public class ViewController {
             chargeService.applyCharge(loanService.getEntityById(loanId));
 
             redirectAttributes.addFlashAttribute("chargeSuccess", true);
-
+            log.info("charge applied");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("chargeError", "Charge failed: " + e.getMessage());
+            log.warn(e);
         }
 
         if (fullName != null && !fullName.trim().isEmpty()) {
@@ -169,12 +174,14 @@ public class ViewController {
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             response.addCookie(cookie);
-
+            log.info("successful authentication");
         } catch (BadCredentialsException e) {
             model.addAttribute("loginError", e.getMessage());
-            return "login";
+            log.warn(e);
+            return "redirect:/login";
         } catch (DisabledException e) {
             redirectAttributes.addFlashAttribute("loginError", "Your account has been disabled. Please contact support.");
+            log.warn("user disabled, access denied");
             return "redirect:/login";
         }
 
@@ -206,7 +213,7 @@ public class ViewController {
 
     @PostMapping("/register")
     public String register(
-            RegisterRequest registerRequest,
+            @Valid RegisterRequest registerRequest,
             HttpServletResponse response, Model model
     ) {
 
@@ -226,13 +233,13 @@ public class ViewController {
             cookie.setHttpOnly(true);
             cookie.setPath("/");
             response.addCookie(cookie);
-
+            log.info("successfully registered");
             return "redirect:/dashboard";
 
         } catch (ExistsException e) {
 
             model.addAttribute("registrationError", e.getMessage());
-
+            log.warn(e);
             return "register";
         }
 
@@ -272,10 +279,12 @@ public class ViewController {
                 model.addAttribute("userIncomingTransactions", bankAccountService.getTransactions(accountNumber, false));
 
                 model.addAttribute("searchError", null);
+                log.info("entered manager section");
             } catch (NotFoundException e) {
 
                 model.addAttribute("foundUser", null);
                 model.addAttribute("searchError", "User: '" + fullName.trim() + "' not found");
+                log.warn(e);
             }
         }
 
@@ -291,6 +300,7 @@ public class ViewController {
         try {
             idToRefund = UUID.fromString(transactionId);
         } catch (IllegalArgumentException e) {
+            log.warn(e);
             redirectAttributes.addFlashAttribute("rollbackError",
                     "Refund error: Invalid format. Transaction ID must be a valid UUID.");
 
@@ -300,11 +310,14 @@ public class ViewController {
         try {
             transactionService.refund(idToRefund);
             redirectAttributes.addFlashAttribute("rollbackSuccess", true);
+            log.info("Rollback success");
 
         } catch (NotFoundException | IllegalArgumentException e) {
+            log.warn(e);
             redirectAttributes.addFlashAttribute("rollbackError", "Refund error : " + e.getMessage());
 
         } catch (Exception e) {
+            log.warn(e);
             redirectAttributes.addFlashAttribute("rollbackError", "Unknown error: " + e.getMessage());
         }
 
@@ -325,13 +338,18 @@ public class ViewController {
     @PostMapping("/loan-payment/process")
     public String processLoanPayment(
             String transactionId,
-            Model model
+            RedirectAttributes redirectAttributes
     ) {
         try {
             transactionService.processTransaction(UUID.fromString(transactionId));
-            model.addAttribute("success", "Payment successful!");
+            redirectAttributes.addFlashAttribute("success", "Payment successful!");
+            log.info("payment success");
+        } catch (InsufficientFundsException e) {
+            redirectAttributes.addFlashAttribute("error", "Payment failed: Insufficient funds.");
+            log.warn(e);
         } catch (Exception e) {
-            model.addAttribute("error", "Payment failed: " + e.getMessage());
+            log.warn(e);
+            redirectAttributes.addFlashAttribute("error", "Payment failed: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -351,17 +369,34 @@ public class ViewController {
     public String processTransfer(
             Long targetBankAccount,
             BigDecimal moneyAmount,
-            Model model
+            RedirectAttributes redirectAttributes, Model model
     ) {
+        UUID transactionId = null;
         try {
             UUID userId = (UUID) model.getAttribute("userId");
             TransactionRequestDTO transactionRequestDTO =
                     new TransactionRequestDTO(moneyAmount, "transfer", TransactionType.TRANSFER, bankAccountService.getByUserId(userId).bankAccountNumber(), targetBankAccount);
-            transactionService.processTransaction(transactionService.create(transactionRequestDTO).getId());
+            transactionId = transactionService.create(transactionRequestDTO).getId();
+            transactionService.processTransaction(transactionId);
+            log.info("Transfer successful");
 
-            model.addAttribute("success", "Transfer successful!");
+            redirectAttributes.addFlashAttribute("success", "Transfer successful!");
+        } catch (InsufficientFundsException e) {
+            log.warn(e);
+            if (transactionId != null) {
+                TransactionDTO transaction = transactionService.getById(transactionId);
+                transaction.setStatus(TransactionStatus.FAILED);
+                transactionService.update(transaction);
+            }
+            redirectAttributes.addFlashAttribute("error", "Transfer failed: Insufficient funds on account.");
         } catch (Exception e) {
-            model.addAttribute("error", "Payment failed: " + e.getMessage());
+            log.warn(e);
+            if (transactionId != null) {
+                TransactionDTO transaction = transactionService.getById(transactionId);
+                transaction.setStatus(TransactionStatus.FAILED);
+                transactionService.update(transaction);
+            }
+            redirectAttributes.addFlashAttribute("error", "Payment failed: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -375,5 +410,13 @@ public class ViewController {
         bankAccountService.create(userId);
 
         return "redirect:/dashboard";
+    }
+
+    @RequestMapping("/**")
+    public String handleUnknownRequest() {
+
+        log.warn("Unknown request received. Redirecting to home page.");
+
+        return "redirect:/";
     }
 }

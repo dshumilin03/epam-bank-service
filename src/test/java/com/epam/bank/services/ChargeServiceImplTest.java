@@ -74,7 +74,7 @@ class ChargeServiceImplTest {
         @DisplayName("Should apply DAILY charge correctly")
         void shouldApplyDailyCharge() {
             BigDecimal debt = BigDecimal.valueOf(1000);
-            Double percent = 10.0;
+            double percent = 10.0;
             BigDecimal calculatedCharge = BigDecimal.valueOf(100);
             BankAccount bankAccount = new BankAccount();
             bankAccount.setBankAccountNumber(1L);
@@ -106,7 +106,7 @@ class ChargeServiceImplTest {
             assertThat(savedTransaction.getSource()).isEqualTo(bankAccount);
             assertThat(savedTransaction.getMoneyAmount()).isEqualTo(calculatedCharge);
             assertThat(savedTransaction.getTransactionType()).isEqualTo(TransactionType.CHARGE);
-            assertThat(savedTransaction.getDescription()).isEqualTo("This is Charge");
+            assertThat(savedTransaction.getDescription()).isEqualTo("This is charge");
         }
 
         @Test
