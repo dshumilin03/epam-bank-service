@@ -64,7 +64,7 @@ public class CardServiceImpl implements CardService {
 
         Card newCard = new Card();
         Random random = new Random();
-        int randomNumberIdentification = random.nextInt(9 - 1) + 1;
+        int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
 
         String cvv = buildCode(false);
         String pinCode = buildCode(true);

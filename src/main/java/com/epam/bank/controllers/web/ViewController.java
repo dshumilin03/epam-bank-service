@@ -205,8 +205,13 @@ public class ViewController {
 
     @PostMapping("/open-card")
     public String openCard(Model model) {
-        UUID userId = (UUID) model.getAttribute("userId");
-        cardService.create(userId, bankAccountService.getByUserId(userId).bankAccountNumber());
+        try {
+            UUID userId = (UUID) model.getAttribute("userId");
+            cardService.create(userId, bankAccountService.getByUserId(userId).bankAccountNumber());
+            log.info("Successfully created card");
+        } catch (Exception e) {
+            log.warn(e);
+        }
 
         return "redirect:/dashboard";
     }
@@ -328,9 +333,14 @@ public class ViewController {
     @GetMapping("/charge-payment")
     public String chargePayment(Model model) {
         UUID userId = (UUID) model.getAttribute("userId");
-        model.addAttribute("userCards", cardService.getByUserId(userId));
-        model.addAttribute("userCharges", bankAccountService.getChargesByUserId(userId));
-        model.addAttribute("bankAccount", bankAccountService.getByUserId(userId));
+        try {
+            model.addAttribute("userCards", cardService.getByUserId(userId));
+            model.addAttribute("userCharges", bankAccountService.getChargesByUserId(userId));
+            model.addAttribute("bankAccount", bankAccountService.getByUserId(userId));
+            log.info("Successfully added attributes for charge payment");
+        } catch (Exception e) {
+            log.warn(e);
+        }
         return "charge-payment";
     }
 
@@ -359,8 +369,13 @@ public class ViewController {
     @GetMapping("/transfer")
     public String transfer(Model model) {
         UUID userId = (UUID) model.getAttribute("userId");
+        try {
         model.addAttribute("userCards", cardService.getByUserId(userId));
         model.addAttribute("bankAccount", bankAccountService.getByUserId(userId));
+            log.info("Successfully added attributes for transfer");
+        } catch (Exception e) {
+            log.warn(e);
+        }
         return "transfer";
     }
 
@@ -405,10 +420,14 @@ public class ViewController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/bank-account")
     public String openBankAccountSubmit(Model model) {
-        UUID userId = (UUID) model.getAttribute("userId");
+        try {
+            UUID userId = (UUID) model.getAttribute("userId");
 
-        bankAccountService.create(userId);
-
+            bankAccountService.create(userId);
+            log.info("Successfully created bank account");
+        } catch (Exception e) {
+            log.warn(e);
+        }
         return "redirect:/dashboard";
     }
 
