@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-// TODO check cyclic of dto's
 @Getter
 @Setter
 public class TransactionDTO {

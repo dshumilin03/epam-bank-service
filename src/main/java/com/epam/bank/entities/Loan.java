@@ -26,7 +26,7 @@ public class Loan implements Chargeable {
     private Double percent;
 
     @Column(name = "term_months", nullable = false)
-    private Long termMoths;
+    private Long termMonths;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

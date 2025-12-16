@@ -5,14 +5,23 @@ import com.epam.bank.dtos.UserCredentialsDTO;
 import com.epam.bank.dtos.UserDTO;
 import com.epam.bank.entities.User;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {BankAccountMapper.class})
 public interface UserMapper {
-    User toUser(UserDTO userDTO);
+    User toEntity(UserDTO userDTO);
 
-    User toUser(RegisterRequest registerRequest);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "isDisabled", ignore = true)
+    @Mapping(target = "bankAccount", ignore = true)
+    User toEntity(RegisterRequest registerRequest);
 
-    UserDTO toUserDTO(User user);
+    UserDTO toDTO(User user);
 
-    User toUser(UserCredentialsDTO userCredentialsDTO);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "fullName", ignore = true)
+    @Mapping(target = "passportId", ignore = true)
+    @Mapping(target = "isDisabled", ignore = true)
+    @Mapping(target = "bankAccount", ignore = true)
+    User toEntity(UserCredentialsDTO userCredentialsDTO);
 }

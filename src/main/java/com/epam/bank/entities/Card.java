@@ -8,11 +8,11 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Inheritance(strategy = InheritanceType.JOINED)
-@Table(name = "abstract_card")
+@Table(name = "card")
 @Entity
 @Getter
 @Setter
-public class AbstractCard {
+public class Card {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -22,10 +22,10 @@ public class AbstractCard {
     private String cardNumber;
 
     @Column(name = "pin_code")
-    private Integer pinCode;
+    private String pinCode;
 
     @Column(name = "cvv_code")
-    private Integer cvv;
+    private String cvv;
 
     @Column(name = "expires_at")
     private LocalDate expiresAt;
@@ -37,11 +37,7 @@ public class AbstractCard {
     @Enumerated(EnumType.STRING)
     private CardStatus status;
 
-    @Column(name = "card_type")
-    @Enumerated(EnumType.STRING)
-    private CardType type;
-
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_account_number", referencedColumnName = "bank_account_number", unique = true)
     private BankAccount bankAccount;
 

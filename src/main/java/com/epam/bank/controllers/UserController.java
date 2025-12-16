@@ -30,6 +30,12 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userDTO);
     }
 
+    @GetMapping
+    public ResponseEntity<UserDTO> getById(@RequestParam(value = "full_name") String fullName) {
+        UserDTO userDTO = userService.getByFullName(fullName);
+        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+    }
+
     @PutMapping("/{userId}")
     public ResponseEntity<UserDTO> changeCredentials(@PathVariable UUID userId, @RequestBody @Valid UserCredentialsDTO credentialsDTO) {
         UserDTO updated = userService.changeCredentials(userId, credentialsDTO);

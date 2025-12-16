@@ -1,6 +1,6 @@
 package com.epam.bank.dtos;
 
-import com.epam.bank.entities.CardType;
+import com.epam.bank.entities.CardStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,17 +15,21 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class CardDTO {
+public class CardDTO {
     @org.hibernate.validator.constraints.UUID
     private UUID id;
     @NotBlank
     private String cardNumber;
     @NotBlank
-    private String fullName;
+    private String ownerName;
     @NotNull
     private LocalDate expiresAt;
     @NotNull
-    private Integer cvv;
+    private String cvv;
     @NotNull
-    private CardType cardType;
+    private CardStatus status;
+    @NotNull
+    private long bankAccountNumber;
+    @NotNull
+    private String pinCode;
 }

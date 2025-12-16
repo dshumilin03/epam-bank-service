@@ -46,11 +46,11 @@ public class ChargeServiceImpl implements ChargeService {
                 .source(chargeable.getBankAccount())
                 .createdAt(chargeable.getLastChargeAt())
                 .description("This is Charge")
-                .type(TransactionType.CHARGE)
+                .transactionType(TransactionType.CHARGE)
                 .moneyAmount(chargeAmount)
                 .build();
 
-        transactionMapper.toTransactionDTO(transactionRepository.save(newTransaction));
+        transactionMapper.toDTO(transactionRepository.save(newTransaction));
     }
 
     private LocalDateTime calculateNextChargeDate(ChargeStrategyType chargeStrategy) {

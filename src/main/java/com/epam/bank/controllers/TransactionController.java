@@ -2,6 +2,7 @@ package com.epam.bank.controllers;
 
 import com.epam.bank.dtos.TransactionDTO;
 import com.epam.bank.dtos.TransactionRequestDTO;
+import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.services.TransactionService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -29,6 +30,19 @@ public class TransactionController {
         TransactionDTO transactionDTO = transactionService.getById(transactionId);
 
         return ResponseEntity.status(HttpStatus.OK).body(transactionDTO);
+    }
+
+    @PostMapping("/{transactionId}")
+    public ResponseEntity<TransactionStatus> processTransaction(@PathVariable UUID transactionId) {
+        TransactionStatus status = transactionService.processTransaction(transactionId);
+        return ResponseEntity.ok().body(status);
+    }
+
+    @PatchMapping("/{transactionId}")
+    public ResponseEntity<TransactionStatus> refund(@PathVariable UUID transactionId) {
+        TransactionStatus status = transactionService.refund(transactionId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(status);
     }
 
     @PutMapping("/{transactionId}")

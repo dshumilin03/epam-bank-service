@@ -4,7 +4,6 @@ import com.epam.bank.entities.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.util.List;
 import java.util.UUID;
 
 public record UserDTO(
@@ -15,6 +14,6 @@ public record UserDTO(
         @NotBlank String password,
         @NotNull Boolean isDisabled,
         @NotNull Role role,
-        List<BankAccountDTO> bankAccounts
+        BankAccountDTO bankAccount
 ) {
 }

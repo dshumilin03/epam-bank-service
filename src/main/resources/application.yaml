@@ -4,17 +4,31 @@ spring:
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
-    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB}
+    username: appuser
+    password: secret123
+    url: jdbc:postgresql://localhost:5432/bankdb
 
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
 server:
   port: 8081
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  expiration: 86400000 # 24 hours in milliseconds
+
+# Encryption Configuration (for passport, CVV, PIN)
+encryption:
+  secret-key: ${ENCRYPTION_KEY:MySecretKey12345}
+
+# Logging
+logging:
+  level:
+    com.epam.bank: DEBUG
+    org.springframework.security: DEBUG

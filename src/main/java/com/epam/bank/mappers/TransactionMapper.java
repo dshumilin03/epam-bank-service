@@ -4,15 +4,30 @@ import com.epam.bank.dtos.TransactionDTO;
 import com.epam.bank.dtos.TransactionRequestDTO;
 import com.epam.bank.entities.Transaction;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {BankAccountMapper.class})
 public interface TransactionMapper {
-    Transaction toTransaction(TransactionDTO dto);
+    @Mapping(target = "source", ignore = true)
+    @Mapping(target = "target", ignore = true) // source and target from service
+    Transaction toEntity(TransactionDTO dto);
 
-    Transaction toTransaction(TransactionRequestDTO dto);
+    // ignore - in service
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "source", ignore = true)
+    @Mapping(target = "target", ignore = true)
+    Transaction toEntity(TransactionRequestDTO dto);
 
-    TransactionDTO toTransactionDTO(Transaction transaction);
+    TransactionDTO toDTO(Transaction transaction);
 
-    TransactionDTO toTransactionDTO(TransactionRequestDTO transactionRequestDTO);
+    //ignore - in service if needed
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "status", ignore = true)
+    @Mapping(target = "source", ignore = true)
+    @Mapping(target = "target", ignore = true)
+    TransactionDTO toDTO(TransactionRequestDTO transactionRequestDTO);
 
 }

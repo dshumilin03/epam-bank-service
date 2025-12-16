@@ -28,6 +28,13 @@ public class LoanController {
         return ResponseEntity.status(HttpStatus.CREATED).body(opened);
     }
 
+    @GetMapping("/{loanId}")
+    public ResponseEntity<LoanDTO> getById(@PathVariable UUID loanId) {
+        LoanDTO loan = loanService.getById(loanId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(loan);
+    }
+
     @GetMapping("/{userId}")
     public ResponseEntity<List<LoanDTO>> getUserLoansByUserId(@PathVariable UUID userId) {
         List<LoanDTO> loans = loanService.getUserLoansByUserId(userId);

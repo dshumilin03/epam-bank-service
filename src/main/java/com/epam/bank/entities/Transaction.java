@@ -36,7 +36,7 @@ public class Transaction {
 
     @Column(name = "transaction_type")
     @Enumerated(EnumType.STRING)
-    private TransactionType type;
+    private TransactionType transactionType;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_bank_account_number", referencedColumnName = "bank_account_number")

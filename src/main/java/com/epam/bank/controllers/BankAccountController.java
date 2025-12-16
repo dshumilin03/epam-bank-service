@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,10 +19,10 @@ import java.util.UUID;
 public class BankAccountController {
     private final BankAccountService bankAccountService;
 
-    @PostMapping("/transactions/{transactionId}")
-    public ResponseEntity<TransactionStatus> processTransaction(@PathVariable UUID transactionId) {
-        TransactionStatus status = bankAccountService.processTransaction(transactionId);
-        return ResponseEntity.ok().body(status);
+    @PostMapping("/users/{userId}")
+    public ResponseEntity<BankAccountDTO> createBankAccount(@PathVariable UUID userId) {
+        BankAccountDTO accountDTO = bankAccountService.create(userId);
+        return ResponseEntity.ok().body(accountDTO);
     }
 
     @GetMapping("/{id}")
@@ -35,6 +36,27 @@ public class BankAccountController {
         List<TransactionDTO> transactionDTOS = bankAccountService.getTransactions(transactionId, outgoing);
 
         return ResponseEntity.status(HttpStatus.OK).body(transactionDTOS);
+    }
+
+    @GetMapping(value = "/transactions/{userId}", params = "pending=true")
+    public ResponseEntity<List<TransactionDTO>> getLoans(@PathVariable UUID userId) {
+        List<TransactionDTO> transactionDTOS = bankAccountService.getLoans(userId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(transactionDTOS);
+    }
+
+    @PatchMapping(value = "/{bankNumber}", params = "action=withdraw")
+    public ResponseEntity<TransactionStatus> withdraw(@PathVariable Long bankNumber, @RequestParam BigDecimal moneyAmount) {
+        TransactionStatus status = bankAccountService.withdraw(bankNumber, moneyAmount);
+
+        return ResponseEntity.status(HttpStatus.OK).body(status);
+    }
+
+    @PatchMapping(value = "/{bankNumber}", params = "action=deposit")
+    public ResponseEntity<TransactionStatus> deposit(@PathVariable Long bankNumber, @RequestParam BigDecimal moneyAmount) {
+        TransactionStatus status = bankAccountService.deposit(bankNumber, moneyAmount);
+
+        return ResponseEntity.status(HttpStatus.OK).body(status);
     }
 }
 

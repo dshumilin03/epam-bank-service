@@ -1,6 +1,7 @@
 package com.epam.bank.exceptions;
 
 public class ExistsException extends RuntimeException {
-    public ExistsException(String string) {
+    public ExistsException(String msg) {
+        super(msg);
     }
 }

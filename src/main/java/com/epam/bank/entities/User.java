@@ -3,9 +3,7 @@ package com.epam.bank.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.Value;
 
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -38,6 +36,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    List<BankAccount> bankAccounts;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    BankAccount bankAccount;
 }

@@ -1,7 +1,8 @@
 package com.epam.bank.services;
 
 import com.epam.bank.dtos.CardDTO;
-import com.epam.bank.entities.CardType;
+import com.epam.bank.entities.BankAccount;
+import com.epam.bank.entities.Card;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,11 +13,13 @@ public interface CardService {
 
     List<CardDTO> getByUserId(UUID userId);
 
-    CardDTO create(UUID userId, CardType cardType);
+    CardDTO create(UUID userId, Long bankAccountNumber);
 
-    void changePin(UUID cardId, Integer newPin);
+    void changePin(UUID cardId, String newPin);
 
     CardDTO renew(UUID id);
 
     void block(UUID id);
+
+    Card getEntityByNumber(String cardNumber);
 }

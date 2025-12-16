@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 public record LoanRequestDTO(
         @NotNull BigDecimal moneyLeft,
         @NotNull Double percent,
-        @NotNull ChargeStrategyType chargeStrategy,
+        @NotNull ChargeStrategyType chargeStrategyType,
         @NotNull Long bankAccountNumber,
         @NotNull Long termMonths
 ) {

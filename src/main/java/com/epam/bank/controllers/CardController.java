@@ -1,8 +1,6 @@
 package com.epam.bank.controllers;
 
 import com.epam.bank.dtos.CardDTO;
-import com.epam.bank.entities.CardType;
-import com.epam.bank.facades.CardFacade;
 import com.epam.bank.services.CardService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -18,7 +16,6 @@ import java.util.UUID;
 @RequestMapping("api/cards")
 public class CardController {
     private final CardService cardService;
-    private final CardFacade cardFacade;
 
     @GetMapping
     public ResponseEntity<CardDTO> getByNumber(@RequestParam(name = "cardNumber") String cardNumber) {
@@ -33,7 +30,7 @@ public class CardController {
     }
 
     @PatchMapping(path = "/{cardId}", params = "action=change-pin")
-    public ResponseEntity<Void> changePin(@PathVariable @Valid UUID cardId, @RequestBody Integer pin) {
+    public ResponseEntity<Void> changePin(@PathVariable @Valid UUID cardId, @RequestBody String pin) {
         cardService.changePin(cardId, pin);
         return ResponseEntity.ok().build();
     }
@@ -44,9 +41,9 @@ public class CardController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @PostMapping
-    public ResponseEntity<CardDTO> create(UUID userId, CardType cardType) {
-        CardDTO card = cardFacade.createCard(userId, cardType);
+    @PostMapping("/users/{userId}")
+    public ResponseEntity<CardDTO> create(@PathVariable  UUID userId, @RequestParam(name = "card_type") Long bankAccountNumber) {
+        CardDTO card = cardService.create(userId, bankAccountNumber);
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
 

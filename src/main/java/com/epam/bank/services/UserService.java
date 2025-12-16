@@ -14,4 +14,8 @@ public interface UserService {
     UserDTO getById(UUID uuid);
 
     UserDTO setStatus(UUID userId, boolean disabled);
+
+    UserDTO getByFullName(String fullName);
+
+    UserDTO getByEmail(String email);
 }

@@ -19,15 +19,15 @@ public class LoanDTO {
     @NotNull
     private Double percent;
     @NotNull
-    private ChargeStrategyType chargeStrategy;
+    private ChargeStrategyType chargeStrategyType;
     @NotNull
     private BankAccountDTO bankAccount;
     @NotNull
     private LocalDateTime createdAt;
     @NotNull
-    private LocalDateTime nextCharge;
+    private LocalDateTime nextChargeAt;
     @NotNull
-    private LocalDateTime lastCharge;
+    private LocalDateTime lastChargeAt;
     @NotNull
     private Long termMonths;
 }

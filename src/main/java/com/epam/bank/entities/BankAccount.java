@@ -21,12 +21,12 @@ public class BankAccount {
     @Column(name = "money_amount")
     private BigDecimal moneyAmount;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @OneToOne(mappedBy = "bankAccount", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private AbstractCard card;
+    @OneToMany(mappedBy = "bankAccount", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Card> cards;
 
     @OneToMany(mappedBy = "source",cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Transaction> outgoingTransactions;
