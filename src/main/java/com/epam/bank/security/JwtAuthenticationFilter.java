@@ -33,14 +33,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        if (request.getRequestURI().equals("/login")
-                || request.getRequestURI().equals("/register")
-                || request.getRequestURI().equals("/")
-                || request.getRequestURI().equals("/about-us")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         String jwt = null;
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {

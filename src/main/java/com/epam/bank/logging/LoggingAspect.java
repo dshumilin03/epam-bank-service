@@ -1,6 +1,7 @@
 package com.epam.bank.logging;
 
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
@@ -38,6 +39,17 @@ public class LoggingAspect {
         log.info("ENTRY: {}.{}({})", className, methodName, args);
     }
 
+    @AfterReturning(pointcut = "applicationMethods()", returning = "result")
+    public void logMethodExit(JoinPoint joinPoint, Object result) {
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        String className = signature.getDeclaringType().getSimpleName();
+        String methodName = signature.getName();
+
+        String formattedResult = formatResult(result);
+
+        log.info("EXIT: {}.{}() returned: {}", className, methodName, formattedResult);
+    }
+
     private String formatArgument(Object arg) {
         if (arg == null) {
             return "null";
@@ -53,5 +65,22 @@ public class LoggingAspect {
         }
 
         return arg.toString();
+    }
+
+    private String formatResult(Object result) {
+        if (result == null) {
+            return "void/null";
+        }
+        String simpleName = result.getClass().getSimpleName();
+
+        if (simpleName.toLowerCase().contains("password") || simpleName.toLowerCase().contains("jwt") || simpleName.toLowerCase().contains("token")) {
+            return simpleName + ": ***REDACTED_RETURN***";
+        }
+
+        if (result instanceof java.util.Collection) {
+            return simpleName + " List (Size: " + ((java.util.Collection<?>) result).size() + ")";
+        }
+
+        return result.toString();
     }
 }
