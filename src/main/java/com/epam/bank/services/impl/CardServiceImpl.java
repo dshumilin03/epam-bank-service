@@ -70,7 +70,7 @@ public class CardServiceImpl implements CardService {
         String pinCode = buildCode(true);
 
         // let 4043 would be epam bank identification
-        newCard.setCardNumber("4043" + String.valueOf(bankAccountNumber) + String.valueOf(randomNumberIdentification));
+        newCard.setCardNumber("4043" + bankAccountNumber + randomNumberIdentification);
         newCard.setBankAccount(bankAccount);
 
         newCard.setExpiresAt(LocalDate.now().plusYears(5));
@@ -92,14 +92,19 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
+    @Transactional
     public CardDTO renew(UUID cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new NotFoundException("Card not found by Id"));
 
         card.setExpiresAt(LocalDate.now().plusYears(5));
-        cardRepository.save(card);
+        Random random = new Random();
+        int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
+        card.setCardNumber("4043" + String.valueOf(card.getBankAccount().getBankAccountNumber()) + String.valueOf(randomNumberIdentification));
 
-        return cardMapper.toDTO(card);
+        Card updated = cardRepository.save(card);
+
+        return cardMapper.toDTO(updated);
     }
 
     @Override

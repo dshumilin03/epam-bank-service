@@ -17,7 +17,8 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
     @Query("SELECT c FROM Card c " +
             "JOIN FETCH c.bankAccount ba " +
             "JOIN FETCH ba.user u " +
-            "WHERE u.id = :userId")
+            "WHERE u.id = :userId " +
+            "ORDER BY c.id")
     List<Card> findByUserId(@Param("userId") UUID id);
 
     UUID id(UUID id);

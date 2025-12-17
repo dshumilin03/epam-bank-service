@@ -15,9 +15,15 @@
         <ul>
             <li th:each="card : ${userCards}">
                 <p>Bank account <span th:text="${card.getBankAccountNumber()}"></span></p>
-                <p>Card number <span th:text="${card.getCardNumber()}"></span></p>
-                <p>Expires <span th:text="${card.getExpiresAt()}"></span></p>
+                <p>Card number: **<span th:text="${card.getCardNumber()}"></span>**</p>
+                <p>Status: <span th:text="${card.getStatus().name()}"></span></p>
+                <p>Expires: <span th:text="${#temporals.format(card.getExpiresAt(), 'MM/yyyy')}"></span></p>
                 <p>Balance: <span th:text="${balance}"></span></p>
+
+                <form th:action="@{/card/renew}" method="post">
+                    <input type="hidden" name="cardId" th:value="${card.getId()}"/>
+                    <button type="submit">Renew Card</button>
+                </form>
             </li>
         </ul>
     </div>

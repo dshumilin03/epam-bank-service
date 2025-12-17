@@ -4,6 +4,7 @@ import com.epam.bank.dtos.UserDTO;
 import com.epam.bank.entities.Role;
 import com.epam.bank.services.UserService;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,6 +18,7 @@ import java.util.UUID;
 
 @ControllerAdvice
 @AllArgsConstructor
+@Log4j2
 public class GlobalViewControllerAdvice {
 
     private final UserService userService;
@@ -27,7 +29,7 @@ public class GlobalViewControllerAdvice {
     public ModelAndView handleUserNotFoundException(UsernameNotFoundException ex) {
 
         ModelAndView mav = new ModelAndView();
-
+        log.warn(ex);
         mav.setViewName("redirect:/");
 
         return mav;
@@ -36,7 +38,7 @@ public class GlobalViewControllerAdvice {
     @ModelAttribute("userFullName")
     public String getCurrentUserFullName() {
         UserDTO user = getUserByAuthEmail();
-        return user != null ? user.getFullName() : "Гость";
+        return user != null ? user.getFullName() : "Guest";
     }
 
 

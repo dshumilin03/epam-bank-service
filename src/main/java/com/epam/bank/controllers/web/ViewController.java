@@ -1,6 +1,7 @@
 package com.epam.bank.controllers.web;
 
 import com.epam.bank.dtos.*;
+import com.epam.bank.entities.CardStatus;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
@@ -158,7 +159,7 @@ public class ViewController {
     public String login(
             String userName,
             String password,
-            HttpServletResponse response, Model model, RedirectAttributes redirectAttributes
+            HttpServletResponse response, Model model
     ) {
         try {
             Authentication auth = authenticationManager.authenticate(
@@ -197,7 +198,7 @@ public class ViewController {
     public ModelAndView handleAuthorizationDeniedException(AuthorizationDeniedException ex) {
 
         ModelAndView mav = new ModelAndView();
-
+        log.warn(ex);
         mav.setViewName("redirect:/");
 
         return mav;
@@ -334,7 +335,9 @@ public class ViewController {
     public String chargePayment(Model model) {
         UUID userId = (UUID) model.getAttribute("userId");
         try {
-            model.addAttribute("userCards", cardService.getByUserId(userId));
+            List<CardDTO> cards = cardService.getByUserId(userId).stream()
+                    .filter((cardDTO -> cardDTO.getStatus().equals(CardStatus.ACTIVE))).toList();
+            model.addAttribute("userCards", cards);
             model.addAttribute("userCharges", bankAccountService.getChargesByUserId(userId));
             model.addAttribute("bankAccount", bankAccountService.getByUserId(userId));
             log.info("Successfully added attributes for charge payment");
@@ -377,6 +380,23 @@ public class ViewController {
             log.warn(e);
         }
         return "transfer";
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/card/renew")
+    public String renewCardWeb(@RequestParam UUID cardId, RedirectAttributes redirectAttributes) {
+        try {
+            cardService.renew(cardId);
+
+            redirectAttributes.addFlashAttribute("success", "Card successfully renewed!");
+            log.info("Card {} successfully renewed.", cardId);
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to renew card: " + e.getMessage());
+            log.warn("Failed to renew card {}: {}", cardId, e.getMessage());
+        }
+
+        return "redirect:/dashboard";
     }
 
     @PreAuthorize("isAuthenticated()")

@@ -50,6 +50,6 @@ public class CardController {
     @PutMapping("/{cardId}")
     public ResponseEntity<CardDTO> renew(@PathVariable UUID cardId) {
         CardDTO card = cardService.renew(cardId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(card);
+        return ResponseEntity.status(HttpStatus.OK).body(card);
     }
 }

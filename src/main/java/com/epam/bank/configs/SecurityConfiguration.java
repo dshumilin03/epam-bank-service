@@ -4,7 +4,6 @@ import com.epam.bank.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -37,6 +36,10 @@ public class SecurityConfiguration {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register", "/about-us", "/favicon.ico").permitAll()
+
+                        .requestMatchers("/api/auth").permitAll()
+                        .requestMatchers("/api/bank-accounts/**").permitAll()
+                        .requestMatchers("/api/bank-accounts/**").permitAll()
 
                         .requestMatchers("/api/**").hasAnyRole("USER", "MANAGER")
                         .anyRequest().authenticated()
