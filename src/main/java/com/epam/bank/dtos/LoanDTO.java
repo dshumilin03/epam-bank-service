@@ -2,9 +2,9 @@ package com.epam.bank.dtos;
 
 import com.epam.bank.entities.ChargeStrategyType;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.UUID;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -15,8 +15,10 @@ public class LoanDTO {
     @NotNull
     private java.util.UUID id;
     @NotNull
+    @PositiveOrZero
     private BigDecimal moneyLeft;
     @NotNull
+    @PositiveOrZero
     private Double percent;
     @NotNull
     private ChargeStrategyType chargeStrategyType;

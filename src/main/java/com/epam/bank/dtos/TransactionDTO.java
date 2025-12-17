@@ -4,6 +4,7 @@ import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +19,7 @@ public class TransactionDTO {
     private UUID id;
     @NotNull
     private LocalDateTime createdAt;
-    @NotNull
+    @NotNull @PositiveOrZero
     private BigDecimal moneyAmount;
     @NotBlank
     private String description;
@@ -26,9 +27,9 @@ public class TransactionDTO {
     private TransactionStatus status;
     @NotNull
     private TransactionType transactionType;
-    @NotNull
+    @NotNull @PositiveOrZero
     private Long sourceBankAccountNumber;
-    @NotNull
+    @NotNull @PositiveOrZero
     private Long targetBankAccountNumber;
 }
 

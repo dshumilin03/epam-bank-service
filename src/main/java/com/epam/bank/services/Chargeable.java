@@ -5,9 +5,12 @@ import com.epam.bank.entities.ChargeStrategyType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public interface Chargeable {
     Double getPercent();
+
+    UUID getId();
 
     void setPercent(Double percent);
 
@@ -28,4 +31,8 @@ public interface Chargeable {
     BankAccount getBankAccount();
 
     void setBankAccount(BankAccount bankAccount);
+
+    BigDecimal getMoneyLeft();
+
+    void setMoneyLeft(BigDecimal moneyLeft);
 }

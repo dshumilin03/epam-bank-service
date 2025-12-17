@@ -57,6 +57,9 @@
         <button th:onclick="'location.href=\'/charge-payment\''">Pay Charge</button>
         <button th:onclick="'location.href=\'/transfer\''">Transfer</button>
     </div>
+    <div th:if="${errorDashboard}" style="color:red;">
+        <p th:text="${errorDashboard}"></p>
+    </div>
 </div>
 </body>
 </html>

@@ -20,7 +20,7 @@ public class User {
     @Column(name = "full_name")
     private String fullName;
 
-    @Column(name = "passport_id")
+    @Column(name = "passport_id", unique = true)
     private String passportId;
 
     @Column(name = "email")

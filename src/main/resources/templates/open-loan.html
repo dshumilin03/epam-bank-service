@@ -10,7 +10,7 @@
     <h2>Open loan</h2>
     <form th:action="@{/loan}" method="post">
         <div>
-            <input type="text" name="moneyLeft" placeholder="Money" required/>
+            <input type="number" name="moneyLeft" placeholder="Money" required min="1"/>
         </div>
         <div>
             <label for="chargeStrategyType">Charge Strategy:</label>
@@ -23,7 +23,7 @@
             </select>
         </div>
         <div>
-            <input type="number" name="termMonths" placeholder="Term in months" required/>
+            <input type="number" name="termMonths" placeholder="Term in months" required min="1"/>
         </div>
         <div>
             <button type="submit">Open Loan</button>

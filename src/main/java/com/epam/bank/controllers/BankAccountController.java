@@ -3,6 +3,7 @@ package com.epam.bank.controllers;
 import com.epam.bank.dtos.BankAccountDTO;
 import com.epam.bank.dtos.TransactionDTO;
 import com.epam.bank.entities.TransactionStatus;
+import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.services.BankAccountService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

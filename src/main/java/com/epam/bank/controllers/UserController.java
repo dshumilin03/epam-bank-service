@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -31,9 +32,9 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<UserDTO> getById(@RequestParam(value = "full_name") String fullName) {
-        UserDTO userDTO = userService.getByFullName(fullName);
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+    public ResponseEntity<List<UserDTO>> getById(@RequestParam(value = "full_name") String fullName) {
+        List<UserDTO> userDTOList = userService.getByFullName(fullName);
+        return ResponseEntity.status(HttpStatus.OK).body(userDTOList);
     }
 
     @PutMapping("/{userId}")

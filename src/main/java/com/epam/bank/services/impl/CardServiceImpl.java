@@ -12,6 +12,8 @@ import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.CardService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,6 +24,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Log4j2
 public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final CardMapper cardMapper;
@@ -94,17 +97,23 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public CardDTO renew(UUID cardId) {
-        Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new NotFoundException("Card not found by Id"));
+        try {
+            Card card = cardRepository.findById(cardId)
+                    .orElseThrow(() -> new NotFoundException("Card not found by Id"));
 
-        card.setExpiresAt(LocalDate.now().plusYears(5));
-        Random random = new Random();
-        int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
-        card.setCardNumber("4043" + String.valueOf(card.getBankAccount().getBankAccountNumber()) + String.valueOf(randomNumberIdentification));
+            card.setExpiresAt(LocalDate.now().plusYears(5));
+            Random random = new Random();
+            int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
+            card.setCardNumber("4043" + String.valueOf(card.getBankAccount().getBankAccountNumber()) + String.valueOf(randomNumberIdentification));
 
-        Card updated = cardRepository.save(card);
+            Card updated = cardRepository.save(card);
 
-        return cardMapper.toDTO(updated);
+            return cardMapper.toDTO(updated);
+        } catch (DataAccessException ex) {
+            log.error("Database connection error: {}", ex.getMessage());
+        throw ex;
+    }
+
     }
 
     @Override
@@ -117,7 +126,7 @@ public class CardServiceImpl implements CardService {
         cardRepository.save(card);
     }
 
-    private String buildCode(boolean pin) {
+    private String buildCode(Boolean pin) {
         StringBuilder sc = new StringBuilder();
         Random random = new Random();
 

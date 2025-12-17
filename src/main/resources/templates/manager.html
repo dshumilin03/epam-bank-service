@@ -3,19 +3,6 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <title>Manager Dashboard - Epam Bank</title>
-    <style>
-        .transaction-list {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-        .transaction-item {
-            border-bottom: 1px dotted #eee;
-            padding: 5px 0;
-        }
-    </style>
 </head>
 <body>
 
@@ -26,13 +13,13 @@
     <div style="width:25%;">
         <h3>Search user</h3>
         <form th:action="@{/manager}" method="get">
-                <input
-                        type="text"
-                        name="full_name"
-                        placeholder="Full name"
-                        required
-                        th:value="${param.full_name}"
-                />
+            <input
+                    type="text"
+                    name="full_name"
+                    placeholder="Full name"
+                    required
+                    th:value="${param.full_name}"
+            />
             <button type="submit">Find</button>
         </form>
 
@@ -40,6 +27,18 @@
             <p th:text="${searchError}"></p>
         </div>
 
+        <div th:if="${foundUsersList != null and !foundUsersList.isEmpty()}" style="margin-top: 20px; border: 1px solid #ddd; padding: 10px; max-height: 300px; overflow-y: auto;">
+            <h4>Found Users (<span th:text="${foundUsersList.size()}"></span>)</h4>
+            <ul>
+                <li th:each="user : ${foundUsersList}" style="list-style: none; margin: 5px 0;">
+                    <a th:href="@{/manager(full_name=${param.full_name}, selected_user_id=${user.id})}"
+                       th:text="${user.fullName + ' (Passport: ' + user.passportId + ')'}"
+                       th:classappend="${user.id.equals(selectedUserId) ? 'selected-user' : ''}"
+                       >
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 
     <div style="width:40%;">
@@ -68,6 +67,13 @@
 
                 <input
                         type="hidden"
+                        name="selectedUserId"
+                        th:value="${foundUser.getId()}"
+                        required
+                />
+
+                <input
+                        type="hidden"
                         name="fullName"
                         th:value="${param.full_name}"
                         th:if="${param.full_name}"
@@ -90,7 +96,7 @@
         </div>
 
         <div th:unless="${foundUser}">
-            <p>Search user to get information</p>
+            <p>Select a user from the list or search for one.</p>
         </div>
     </div>
 
@@ -100,12 +106,12 @@
         <div th:if="${foundUser}">
 
             <h4>Outgoing Transactions</h4>
-            <div th:if="${userOutgoingTransactions != null and !userOutgoingTransactions.isEmpty()}" class="transaction-list">
-                <div th:each="transaction : ${userOutgoingTransactions}" class="transaction-item">
+            <div th:if="${userOutgoingTransactions != null and !userOutgoingTransactions.isEmpty()}">
+                <div th:each="transaction : ${userOutgoingTransactions}">
                     <p>
                         ID: <span th:text="${transaction.id}"></span> |
                         amount: <span th:text="${transaction.moneyAmount}"></span> |
-                        receiver: <span th:text="${transaction.targetBankAccountNumber}"></span> |
+                        receiver bank account number: <span th:text="${transaction.targetBankAccountNumber}"></span> |
                         date: <span th:text="${transaction.createdAt}"></span>
                     </p>
                 </div>
@@ -115,12 +121,12 @@
             </div>
 
             <h4>Incoming transactions</h4>
-            <div th:if="${userIncomingTransactions != null and !userIncomingTransactions.isEmpty()}" class="transaction-list">
-                <div th:each="transaction : ${userIncomingTransactions}" class="transaction-item">
+            <div th:if="${userIncomingTransactions != null and !userIncomingTransactions.isEmpty()}">
+                <div th:each="transaction : ${userIncomingTransactions}">
                     <p>
                         ID: <span th:text="${transaction.id}"></span> |
                         amount: <span th:text="${transaction.moneyAmount}"></span> |
-                        sender: <span th:text="${transaction.sourceBankAccountNumber}"></span> |
+                        sender bank account number: <span th:text="${transaction.sourceBankAccountNumber}"></span> |
                         date: <span th:text="${transaction.createdAt}"></span> |
                         status: <span th:text="${transaction.status.toString()}"></span>
                     </p>
@@ -160,12 +166,6 @@
         <div th:if="${foundUser}">
 
             <h4 style="margin-top: 15px;">Apply Charge to Loan</h4>
-            <input
-                    type="hidden"
-                    name="fullName"
-                    th:value="${param.full_name}"
-                    th:if="${param.full_name}"
-            />
             <form th:action="@{/manager/user}" method="post">
                 <label for="loanSelect">Select Loan:</label>
                 <select name="loanId" id="loanSelect" required>

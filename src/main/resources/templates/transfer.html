@@ -33,7 +33,9 @@
     <div th:if="${bankAccount == null || userCards.isEmpty()}">
         <p>You have no cards</p>
     </div>
-
+    <div th:if="${transferError}" style="color:red;">
+        <p th:text="${transferError}"></p>
+    </div>
     <br/>
     <a th:href="@{/dashboard}">Back to Dashboard</a>
 </div>

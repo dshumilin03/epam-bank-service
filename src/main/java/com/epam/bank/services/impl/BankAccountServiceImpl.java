@@ -31,7 +31,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final TransactionRepository transactionRepository;
 
     @Override
-    public BankAccountDTO create(UUID userId) {
+    public BankAccountDTO create(UUID userId) throws NotFoundException {
         BankAccount newBankAccount = new BankAccount();
 
         newBankAccount.setUser(userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found by Id")));
@@ -43,15 +43,16 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccountDTO getById(Long id) {
+    public BankAccountDTO getById(Long id) throws NotFoundException {
         BankAccount bankAccount = bankAccountRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Not found bank account by bankAccountNumber (number of account)"));
+
 
         return bankAccountMapper.toDTO(bankAccount);
     }
 
     @Override
-    public List<TransactionDTO> getTransactions(Long id, boolean outgoing) {
+    public List<TransactionDTO> getTransactions(Long id, Boolean outgoing) throws NotFoundException {
         BankAccount bankAccount = bankAccountRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Not found bank account by bankAccountNumber (number of account)"));
 
@@ -64,7 +65,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount) {
+    public TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount) throws NotFoundException {
         BankAccount bankAccount = bankAccountRepository.findById(bankNumber)
                 .orElseThrow(() -> new NotFoundException("Not found bank account by bankAccountNumber (number of account)"));
 
@@ -74,7 +75,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccountDTO getByUserId(UUID id) {
+    public BankAccountDTO getByUserId(UUID id) throws NotFoundException {
         BankAccount bankAccount = bankAccountRepository.findByUserId((id))
                 .orElseThrow(() -> new NotFoundException("Not found bank account by bankAccountNumber (number of account)"));
 
@@ -94,7 +95,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public TransactionStatus withdraw(Long bankNumber, BigDecimal moneyAmount) {
+    public TransactionStatus withdraw(Long bankNumber, BigDecimal moneyAmount) throws NotFoundException {
         BankAccount bankAccount = bankAccountRepository.findById(bankNumber)
                 .orElseThrow(() -> new NotFoundException("Not found bank account by bankAccountNumber (number of account)"));
 

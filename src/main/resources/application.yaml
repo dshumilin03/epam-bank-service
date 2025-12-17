@@ -10,7 +10,8 @@ spring:
     username: appuser
     password: secret123
     url: jdbc:postgresql://localhost:5432/bankdb
-
+    hikari:
+      connection-timeout: 1000
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

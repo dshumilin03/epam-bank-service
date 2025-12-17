@@ -5,9 +5,9 @@ import com.epam.bank.entities.CardStatus;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
-import com.epam.bank.exceptions.ExistsException;
 import com.epam.bank.exceptions.InsufficientFundsException;
 import com.epam.bank.exceptions.NotFoundException;
+import com.epam.bank.exceptions.UserExistsException;
 import com.epam.bank.security.EncryptionService;
 import com.epam.bank.security.JwtService;
 import com.epam.bank.security.UserDetailsServiceImpl;
@@ -61,6 +61,12 @@ public class ViewController {
         return "index";
     }
 
+    @GetMapping("/service-unavailable")
+    public String error() {
+        return "service-unavailable";
+    }
+
+
     @GetMapping("/loan")
     public String loan() {
         return "open-loan";
@@ -75,7 +81,7 @@ public class ViewController {
     ) {
         try {
 
-            boolean currentStatus = userService.getById(userId).getIsDisabled();
+            Boolean currentStatus = userService.getById(userId).getIsDisabled();
 
             userService.setStatus(userId, !currentStatus);
 
@@ -242,7 +248,7 @@ public class ViewController {
             log.info("successfully registered");
             return "redirect:/dashboard";
 
-        } catch (ExistsException e) {
+        } catch (UserExistsException e) {
 
             model.addAttribute("registrationError", e.getMessage());
             log.warn(e);
@@ -257,40 +263,76 @@ public class ViewController {
     public String dashboard(Model model) {
         UUID userId = (UUID) model.getAttribute("userId");
 
-        BankAccountDTO bankAccount = bankAccountService.getByUserId(userId);
-        List<CardDTO> cards = cardService.getByUserId(userId);
-        model.addAttribute("userLoans", loanService.getUserLoansByUserId(userId));
-        model.addAttribute("charges", bankAccountService.getChargesByUserId(userId));
-        model.addAttribute("userCards", cards);
-        model.addAttribute("balance", bankAccount.moneyAmount());
+        try {
+            BankAccountDTO bankAccount = bankAccountService.getByUserId(userId);
+            List<CardDTO> cards = cardService.getByUserId(userId);
+            model.addAttribute("userLoans", loanService.getUserLoansByUserId(userId));
+            model.addAttribute("charges", bankAccountService.getChargesByUserId(userId));
+            model.addAttribute("userCards", cards);
+            model.addAttribute("balance", bankAccount.moneyAmount());
 
-        model.addAttribute("bankAccount", bankAccount);
+            model.addAttribute("bankAccount", bankAccount);
+
+        } catch (NotFoundException e) {
+            model.addAttribute("errorDashboard", e);
+        }
 
         return "dashboard";
     }
 
     @PreAuthorize("hasRole('MANAGER')")
     @GetMapping("/manager")
-    public String managerDashboard(Model model, @RequestParam(name = "full_name", required = false) String fullName) {
+    public String managerDashboard(Model model,
+                                   @RequestParam(name = "full_name", required = false) String fullName,
+                                   @RequestParam(name = "selected_user_id", required = false) UUID selectedUserId) {
+
+        model.addAttribute("param_fullName", fullName);
 
         if (fullName != null && !fullName.trim().isEmpty()) {
             try {
-                UserDTO foundUser = userService.getByFullName(fullName.trim());
-                foundUser.setPassportId(encryptionService.decrypt(foundUser.getPassportId()));
-                model.addAttribute("foundUser", foundUser);
-                Long accountNumber = foundUser.getBankAccount().bankAccountNumber();
-                model.addAttribute("accountNumber", accountNumber);
-                model.addAttribute("userLoans", loanService.getUserLoansByUserId(foundUser.getId()));
-                model.addAttribute("userOutgoingTransactions", bankAccountService.getTransactions(accountNumber, true));
-                model.addAttribute("userIncomingTransactions", bankAccountService.getTransactions(accountNumber, false));
+                List<UserDTO> foundUsers = userService.getByFullName(fullName.trim());
 
-                model.addAttribute("searchError", null);
-                log.info("entered manager section");
+                foundUsers.forEach(userDTO -> {
+                    userDTO.setPassportId(encryptionService.decrypt(userDTO.getPassportId()));
+                });
+
+                model.addAttribute("foundUsersList", foundUsers);
+
+                UserDTO selectedUser = null;
+
+                if (selectedUserId != null) {
+                    UUID finalSelectedUserId = selectedUserId;
+                    selectedUser = foundUsers.stream()
+                            .filter(u -> u.getId().equals(finalSelectedUserId))
+                            .findFirst()
+                            .orElse(null);
+                } else if (!foundUsers.isEmpty()) {
+                    selectedUser = foundUsers.get(0);
+                    selectedUserId = selectedUser.getId();
+                }
+
+                if (selectedUser != null) {
+
+                    model.addAttribute("foundUser", selectedUser);
+                    model.addAttribute("selectedUserId", selectedUserId);
+
+                    Long accountNumber = selectedUser.getBankAccount().bankAccountNumber();
+                    model.addAttribute("accountNumber", accountNumber);
+
+                    model.addAttribute("userLoans", loanService.getUserLoansByUserId(selectedUser.getId()));
+                    model.addAttribute("userOutgoingTransactions", bankAccountService.getTransactions(accountNumber, true));
+                    model.addAttribute("userIncomingTransactions", bankAccountService.getTransactions(accountNumber, false));
+
+                    model.addAttribute("searchError", null);
+                }
+
+                log.info("Entered manager section, users found: {}", foundUsers.size());
+
             } catch (NotFoundException e) {
-
+                model.addAttribute("foundUsersList", null);
                 model.addAttribute("foundUser", null);
                 model.addAttribute("searchError", "User: '" + fullName.trim() + "' not found");
-                log.warn(e);
+                log.warn("Search failed for fullName: {}", fullName.trim(), e);
             }
         }
 
@@ -299,7 +341,7 @@ public class ViewController {
 
     @PreAuthorize("hasRole('MANAGER')")
     @PostMapping("/manager")
-    public String rollback(String transactionId, RedirectAttributes redirectAttributes) {
+    public String rollback(String transactionId, Model model) {
 
         UUID idToRefund;
 
@@ -307,27 +349,26 @@ public class ViewController {
             idToRefund = UUID.fromString(transactionId);
         } catch (IllegalArgumentException e) {
             log.warn(e);
-            redirectAttributes.addFlashAttribute("rollbackError",
-                    "Refund error: Invalid format. Transaction ID must be a valid UUID.");
+            model.addAttribute("rollbackError", "Refund error: Invalid format. Transaction ID must be a valid UUID");
 
-            return "redirect:/manager";
+            return "manager";
         }
 
         try {
             transactionService.refund(idToRefund);
-            redirectAttributes.addFlashAttribute("rollbackSuccess", true);
+            model.addAttribute("rollbackSuccess", true);
             log.info("Rollback success");
 
         } catch (NotFoundException | IllegalArgumentException e) {
             log.warn(e);
-            redirectAttributes.addFlashAttribute("rollbackError", "Refund error : " + e.getMessage());
+            model.addAttribute("rollbackError", "Refund error : " + e.getMessage());
 
         } catch (Exception e) {
             log.warn(e);
-            redirectAttributes.addFlashAttribute("rollbackError", "Unknown error: " + e.getMessage());
+            model.addAttribute("rollbackError", "Unknown error: " + e.getMessage());
         }
 
-        return "redirect:/manager";
+        return "manager";
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -350,19 +391,18 @@ public class ViewController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/loan-payment/process")
     public String processLoanPayment(
-            String transactionId,
-            RedirectAttributes redirectAttributes
+            String transactionId, Model model
     ) {
         try {
             transactionService.processTransaction(UUID.fromString(transactionId));
-            redirectAttributes.addFlashAttribute("success", "Payment successful!");
+            model.addAttribute("success", "Payment successful!");
             log.info("payment success");
         } catch (InsufficientFundsException e) {
-            redirectAttributes.addFlashAttribute("error", "Payment failed: Insufficient funds.");
+            model.addAttribute("Payment failed: Insufficient funds");
             log.warn(e);
         } catch (Exception e) {
             log.warn(e);
-            redirectAttributes.addFlashAttribute("error", "Payment failed: " + e.getMessage());
+            model.addAttribute("Payment failed: " + e.getMessage());
         }
 
         return "redirect:/dashboard";
@@ -373,11 +413,12 @@ public class ViewController {
     public String transfer(Model model) {
         UUID userId = (UUID) model.getAttribute("userId");
         try {
-        model.addAttribute("userCards", cardService.getByUserId(userId));
-        model.addAttribute("bankAccount", bankAccountService.getByUserId(userId));
+            model.addAttribute("userCards", cardService.getByUserId(userId));
+            model.addAttribute("bankAccount", bankAccountService.getByUserId(userId));
             log.info("Successfully added attributes for transfer");
         } catch (Exception e) {
             log.warn(e);
+            model.addAttribute("transferError", e);
         }
         return "transfer";
     }
@@ -423,7 +464,7 @@ public class ViewController {
                 transaction.setStatus(TransactionStatus.FAILED);
                 transactionService.update(transaction);
             }
-            redirectAttributes.addFlashAttribute("error", "Transfer failed: Insufficient funds on account.");
+            redirectAttributes.addFlashAttribute("transferError", "Transfer failed: Insufficient funds on account.");
         } catch (Exception e) {
             log.warn(e);
             if (transactionId != null) {
@@ -431,7 +472,8 @@ public class ViewController {
                 transaction.setStatus(TransactionStatus.FAILED);
                 transactionService.update(transaction);
             }
-            redirectAttributes.addFlashAttribute("error", "Payment failed: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("transferError", "Payment failed: " + e.getMessage());
+            return "redirect:/transfer";
         }
 
         return "redirect:/dashboard";
@@ -454,8 +496,8 @@ public class ViewController {
     @RequestMapping("/**")
     public String handleUnknownRequest() {
 
-        log.warn("Unknown request received. Redirecting to home page.");
+        log.warn("Unknown request received. Redirecting to not found page");
 
-        return "redirect:/";
+        return "not-found";
     }
 }

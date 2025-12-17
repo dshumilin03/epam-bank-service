@@ -4,5 +4,5 @@ import java.math.BigDecimal;
 
 public interface ChargeStrategy {
 
-    BigDecimal calculateCharge(BigDecimal debt, double percent);
+    BigDecimal calculateCharge(BigDecimal debt, Double percent);
 }

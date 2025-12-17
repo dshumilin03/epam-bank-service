@@ -1,8 +1,10 @@
 package com.epam.bank.dtos;
 
 import com.epam.bank.entities.Role;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -12,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class UserDTO {
 
-    @org.hibernate.validator.constraints.UUID
+    @org.hibernate.validator.constraints.UUID @Nullable
     UUID id;
     @NotBlank
     String fullName;
@@ -26,5 +28,6 @@ public class UserDTO {
     Boolean isDisabled;
     @NotNull
     Role role;
+    @NotNull @PositiveOrZero
     BankAccountDTO bankAccount;
 }

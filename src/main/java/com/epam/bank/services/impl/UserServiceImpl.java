@@ -7,6 +7,7 @@ import com.epam.bank.entities.Role;
 import com.epam.bank.entities.User;
 import com.epam.bank.exceptions.ExistsException;
 import com.epam.bank.exceptions.NotFoundException;
+import com.epam.bank.exceptions.UserExistsException;
 import com.epam.bank.mappers.UserMapper;
 import com.epam.bank.repositories.UserRepository;
 import com.epam.bank.security.EncryptionService;
@@ -15,6 +16,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,8 +31,8 @@ public class UserServiceImpl implements UserService {
 
     public UserDTO register(RegisterRequest registerUserDTO) {
         if (userRepository.findByEmail(registerUserDTO.email()).isPresent() ||
-                userRepository.findByPassportId(registerUserDTO.passportId()).isPresent()) {
-            throw new ExistsException("User with this data already exists");
+                userRepository.findByPassportId(encryptionService.encrypt(registerUserDTO.passportId())).isPresent()) {
+            throw new UserExistsException("User with this data already exists");
         }
         User newUser = userMapper.toEntity(registerUserDTO);
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
@@ -43,8 +46,8 @@ public class UserServiceImpl implements UserService {
         User old = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found by Id"));
 
-        boolean existsByEmail = userRepository.existsByEmail(userCredentialsDTO.email());
-        boolean notSameEmail = !userCredentialsDTO.email().equals(old.getEmail());
+        Boolean existsByEmail = userRepository.existsByEmail(userCredentialsDTO.email());
+        Boolean notSameEmail = !userCredentialsDTO.email().equals(old.getEmail());
         if (existsByEmail && notSameEmail) {
             throw new ExistsException("This email is attached to other User");
         }
@@ -59,7 +62,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException("User not found by Id")));
     }
 
-    public UserDTO setStatus(UUID userId, boolean disabled) {
+    public UserDTO setStatus(UUID userId, Boolean disabled) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found by Id"));
 
@@ -69,9 +72,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO getByFullName(String fullName) {
-        return userMapper.toDTO(userRepository.findByFullName((fullName))
-                .orElseThrow(() -> new NotFoundException("User not found by full name")));
+    public List<UserDTO> getByFullName(String fullName) {
+        List<UserDTO> userList = new ArrayList<>();
+
+        userRepository.findByFullName((fullName)).forEach(user -> {
+            userList.add(userMapper.toDTO(user));
+        });
+
+        return userList;
     }
 
     @Override

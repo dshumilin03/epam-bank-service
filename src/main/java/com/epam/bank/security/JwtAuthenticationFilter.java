@@ -8,6 +8,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +24,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Log4j2
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -33,53 +37,66 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String jwt = null;
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("JWT".equals(cookie.getName())) {
-                    jwt = cookie.getValue();
-                    break;
-                }
-            }
-        }
-
-        if (jwt == null) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        String email;
-
         try {
-            email = jwtService.extractUsername(jwt);
-
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-                if (jwtService.isTokenValid(jwt, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+            String jwt = null;
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (Cookie cookie : cookies) {
+                    if ("JWT".equals(cookie.getName())) {
+                        jwt = cookie.getValue();
+                        break;
+                    }
                 }
             }
 
-        } catch (UsernameNotFoundException | ExpiredJwtException | SignatureException e) {
-            SecurityContextHolder.clearContext();
+            if (jwt == null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            String email;
 
-            Cookie badCookie = new Cookie("JWT", null);
-            badCookie.setHttpOnly(true);
-            badCookie.setPath("/");
-            badCookie.setMaxAge(0);
-            response.addCookie(badCookie);
+            try {
+                email = jwtService.extractUsername(jwt);
 
-            response.sendRedirect(request.getContextPath() + "/login");
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            return;
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+                    if (jwtService.isTokenValid(jwt, userDetails)) {
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities()
+                        );
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
+                }
+
+            } catch (UsernameNotFoundException | ExpiredJwtException | SignatureException e) {
+                SecurityContextHolder.clearContext();
+
+                Cookie badCookie = new Cookie("JWT", null);
+                badCookie.setHttpOnly(true);
+                badCookie.setPath("/");
+                badCookie.setMaxAge(0);
+                response.addCookie(badCookie);
+
+                response.sendRedirect(request.getContextPath() + "/login");
+
+                return;
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (DataAccessResourceFailureException | InternalAuthenticationServiceException ex) {
+            log.error("Database connection failure in JWT filter", ex);
+            response.sendRedirect("/service-unavailable");
         }
 
-        filterChain.doFilter(request, response);
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.equals("/service-unavailable");
+    }
+
 }

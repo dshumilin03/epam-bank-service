@@ -8,6 +8,7 @@ import com.epam.bank.entities.Role;
 import com.epam.bank.entities.User;
 import com.epam.bank.exceptions.ExistsException;
 import com.epam.bank.exceptions.NotFoundException;
+import com.epam.bank.exceptions.UserExistsException;
 import com.epam.bank.mappers.UserMapper;
 import com.epam.bank.repositories.UserRepository;
 import com.epam.bank.security.EncryptionService;
@@ -23,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -70,6 +72,7 @@ class UserServiceImplTest {
             UserDTO expectedDTO = new UserDTO(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, false, Role.USER, bankAccountDTO);
 
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
+            when(encryptionService.encrypt(any())).thenReturn(PASSPORT);
             when(userRepository.findByPassportId(PASSPORT)).thenReturn(Optional.empty());
             when(userMapper.toEntity(request)).thenReturn(userEntity);
             when(userRepository.save(userEntity)).thenReturn(savedUser);
@@ -82,27 +85,29 @@ class UserServiceImplTest {
         }
 
         @Test
-        @DisplayName("Should throw ExistsException when email already exists")
-        void shouldThrowExceptionWhenEmailExists() {
+        @DisplayName("Should throw UserExistsException when email already exists")
+        void shouldThrowUserExceptionWhenEmailExists() {
+
             RegisterRequest request = new RegisterRequest(FULL_NAME, EMAIL, PASSWORD, PASSPORT, Role.USER);
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(new User()));
 
             assertThatThrownBy(() -> userService.register(request))
-                    .isInstanceOf(ExistsException.class)
+                    .isInstanceOf(UserExistsException.class)
                     .hasMessage("User with this data already exists");
 
             verify(userRepository, never()).save(any());
         }
 
         @Test
-        @DisplayName("Should throw ExistsException when passport already exists")
+        @DisplayName("Should throw UserExistsException when passport already exists")
         void shouldThrowExceptionWhenPassportExists() {
             RegisterRequest request = new RegisterRequest(FULL_NAME, EMAIL, PASSWORD, PASSPORT, Role.USER);
+            when(encryptionService.encrypt(any())).thenReturn(PASSPORT);
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
             when(userRepository.findByPassportId(PASSPORT)).thenReturn(Optional.of(new User()));
 
             assertThatThrownBy(() -> userService.register(request))
-                    .isInstanceOf(ExistsException.class)
+                    .isInstanceOf(UserExistsException.class)
                     .hasMessage("User with this data already exists");
 
             verify(userRepository, never()).save(any());
@@ -266,22 +271,14 @@ class UserServiceImplTest {
             BankAccountDTO bankAccountDTO = new BankAccountDTO(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
             UserDTO expectedDTO = new UserDTO(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, false, Role.USER, bankAccountDTO);
 
-            when(userRepository.findByFullName(FULL_NAME)).thenReturn(Optional.of(user));
+            List<User> expectedList = new ArrayList<>();
+            expectedList.add(user);
+            when(userRepository.findByFullName(FULL_NAME)).thenReturn(expectedList);
             when(userMapper.toDTO(user)).thenReturn(expectedDTO);
 
-            UserDTO result = userService.getByFullName(FULL_NAME);
+            List<UserDTO> result = userService.getByFullName(FULL_NAME);
 
-            assertThat(result).isEqualTo(expectedDTO);
-        }
-
-        @Test
-        @DisplayName("Should throw NotFoundException when name not found")
-        void shouldThrowWhenNameNotFound() {
-            when(userRepository.findByFullName(FULL_NAME)).thenReturn(Optional.empty());
-
-            assertThatThrownBy(() -> userService.getByFullName(FULL_NAME))
-                    .isInstanceOf(NotFoundException.class)
-                    .hasMessage("User not found by full name");
+            assertThat(result.getFirst()).isEqualTo(expectedDTO);
         }
     }
 }

@@ -6,6 +6,7 @@ import com.epam.bank.dtos.LoanRequestDTO;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Loan;
 import com.epam.bank.exceptions.NotFoundException;
+import com.epam.bank.exceptions.UnknownStrategyTypeException;
 import com.epam.bank.mappers.BankAccountMapper;
 import com.epam.bank.mappers.LoanMapper;
 import com.epam.bank.repositories.LoanRepository;
@@ -14,6 +15,8 @@ import com.epam.bank.services.Chargeable;
 import com.epam.bank.services.LoanService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,6 +26,7 @@ import java.util.UUID;
 
 @Service
 @AllArgsConstructor
+@Log4j2
 public class LoanServiceImpl implements LoanService {
 
     private final LoanRepository loanRepository;
@@ -52,39 +56,44 @@ public class LoanServiceImpl implements LoanService {
     @Override
     @Transactional
     public LoanDTO open(LoanRequestDTO loanRequestDTO) {
-        LoanDTO loanDTO = loanMapper.toDTO(loanRequestDTO);
+        try {
+            LoanDTO loanDTO = loanMapper.toDTO(loanRequestDTO);
 
-        BankAccountDTO bankAccount = bankAccountService.getById(loanRequestDTO.bankAccountNumber());
-        loanDTO.setBankAccount(bankAccount);
-        loanDTO.setCreatedAt(LocalDateTime.now());
-        loanDTO.setLastChargeAt(loanDTO.getCreatedAt());
+            BankAccountDTO bankAccount = bankAccountService.getById(loanRequestDTO.bankAccountNumber());
+            loanDTO.setBankAccount(bankAccount);
+            loanDTO.setCreatedAt(LocalDateTime.now());
+            loanDTO.setLastChargeAt(loanDTO.getCreatedAt());
 
-        // monthly or daily
-        if (loanRequestDTO.chargeStrategyType().name().equals(ChargeStrategyType.MONTHLY.name())) {
-            loanDTO.setNextChargeAt(LocalDateTime.now().plusMonths(1));
-        } else {
-            loanDTO.setNextChargeAt(LocalDateTime.now().plusDays(1));
+            // monthly or daily
+            if (loanRequestDTO.chargeStrategyType().name().equals(ChargeStrategyType.MONTHLY.name())) {
+                loanDTO.setNextChargeAt(LocalDateTime.now().plusMonths(1));
+            } else {
+                loanDTO.setNextChargeAt(LocalDateTime.now().plusDays(1));
 
+            }
+
+            Loan loan = loanMapper.toEntity(loanDTO);
+            LocalDateTime now = LocalDateTime.now();
+            loan.setCreatedAt(now);
+            loan.setBankAccount(bankAccountMapper.toEntity(loanDTO.getBankAccount()));
+
+            ChargeStrategyType strategyType = loan.getChargeStrategyType();
+
+            if (strategyType == null) {
+                throw new UnknownStrategyTypeException("Unknown strategy type");
+            }
+
+            switch (strategyType) {
+                case DAILY -> loan.setNextChargeAt(now.plusDays(1));
+                case MONTHLY -> loan.setNextChargeAt(now.plusMonths(1));
+                default -> throw new UnknownStrategyTypeException("Unknown strategy type");
+            }
+            bankAccountService.deposit(bankAccount.bankAccountNumber(), loanRequestDTO.moneyLeft());
+            return loanMapper.toDTO(loanRepository.save(loan));
+        } catch (DataAccessException e) {
+            log.error(e);
+            throw e;
         }
-
-        Loan loan = loanMapper.toEntity(loanDTO);
-        LocalDateTime now = LocalDateTime.now();
-        loan.setCreatedAt(now);
-        loan.setBankAccount(bankAccountMapper.toEntity(loanDTO.getBankAccount()));
-
-        ChargeStrategyType strategyType = loan.getChargeStrategyType();
-
-        if (strategyType == null) {
-            throw new IllegalArgumentException("Unknown strategy type");
-        }
-
-        switch (strategyType) {
-            case DAILY -> loan.setNextChargeAt(now.plusDays(1));
-            case MONTHLY -> loan.setNextChargeAt(now.plusMonths(1));
-            default -> throw new IllegalArgumentException("Unknown strategy type");
-        }
-        bankAccountService.deposit(bankAccount.bankAccountNumber(), loanRequestDTO.moneyLeft());
-        return loanMapper.toDTO(loanRepository.save(loan));
     }
 
     @Override

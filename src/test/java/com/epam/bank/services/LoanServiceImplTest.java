@@ -7,6 +7,7 @@ import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Loan;
 import com.epam.bank.exceptions.NotFoundException;
+import com.epam.bank.exceptions.UnknownStrategyTypeException;
 import com.epam.bank.mappers.BankAccountMapper;
 import com.epam.bank.mappers.LoanMapper;
 import com.epam.bank.repositories.LoanRepository;
@@ -261,8 +262,8 @@ class LoanServiceImplTest {
         }
 
         @Test
-        @DisplayName("Should throw IllegalArgumentException for unknown strategy type")
-        void shouldThrowIllegalArgumentForUnknownStrategy() {
+        @DisplayName("Should throw UnknownStrategyTypeException for unknown strategy type")
+        void shouldThrowUnknownStrategyTypeForUnknownStrategy() {
             loan.setChargeStrategyType(null);
 
             when(loanMapper.toDTO(loanRequestDTO)).thenReturn(loanDTO);
@@ -270,7 +271,7 @@ class LoanServiceImplTest {
             when(loanMapper.toEntity(loanDTO)).thenReturn(loan);
 
             assertThatThrownBy(() -> loanService.open(loanRequestDTO))
-                    .isInstanceOf(IllegalArgumentException.class)
+                    .isInstanceOf(UnknownStrategyTypeException.class)
                     .hasMessage("Unknown strategy type");
 
             verify(loanRepository, never()).save(any());

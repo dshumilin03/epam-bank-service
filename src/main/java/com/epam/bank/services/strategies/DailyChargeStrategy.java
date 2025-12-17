@@ -6,7 +6,7 @@ import java.math.RoundingMode;
 public class DailyChargeStrategy implements ChargeStrategy {
 
     @Override
-    public BigDecimal calculateCharge(BigDecimal debt, double percent) {
+    public BigDecimal calculateCharge(BigDecimal debt, Double percent) {
 
         return debt
                 .multiply(BigDecimal.valueOf(1 + (percent / 100))

@@ -19,7 +19,7 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping
-    public ResponseEntity<TransactionDTO> create(@RequestBody TransactionRequestDTO transactionRequestDTO) {
+    public ResponseEntity<TransactionDTO> create(@RequestBody @Valid TransactionRequestDTO transactionRequestDTO) {
         TransactionDTO transactionDTO = transactionService.create(transactionRequestDTO);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(transactionDTO);

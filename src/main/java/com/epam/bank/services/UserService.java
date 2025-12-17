@@ -4,6 +4,7 @@ import com.epam.bank.dtos.UserCredentialsDTO;
 import com.epam.bank.dtos.RegisterRequest;
 import com.epam.bank.dtos.UserDTO;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
@@ -13,9 +14,9 @@ public interface UserService {
 
     UserDTO getById(UUID uuid);
 
-    UserDTO setStatus(UUID userId, boolean disabled);
+    UserDTO setStatus(UUID userId, Boolean disabled);
 
-    UserDTO getByFullName(String fullName);
+    List<UserDTO> getByFullName(String fullName);
 
     UserDTO getByEmail(String email);
 }
