@@ -127,7 +127,7 @@ public class CardControllerTest {
         when(cardService.renew(TEST_CARD_ID)).thenReturn(renewedCard);
 
         mockMvc.perform(put("/api/cards/{cardId}", TEST_CARD_ID))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(TEST_CARD_ID.toString()));
 
         verify(cardService).renew(TEST_CARD_ID);

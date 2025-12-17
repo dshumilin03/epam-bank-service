@@ -39,7 +39,6 @@ public class SecurityConfiguration {
 
                         .requestMatchers("/api/auth").permitAll()
                         .requestMatchers("/api/bank-accounts/**").permitAll()
-                        .requestMatchers("/api/bank-accounts/**").permitAll()
 
                         .requestMatchers("/api/**").hasAnyRole("USER", "MANAGER")
                         .anyRequest().authenticated()
