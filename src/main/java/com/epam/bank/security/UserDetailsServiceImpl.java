@@ -1,6 +1,7 @@
 package com.epam.bank.security;
 
 import com.epam.bank.entities.User;
+import com.epam.bank.exceptions.BankServiceRuntimeException;
 import com.epam.bank.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
@@ -29,7 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException(email));
         } catch (DataAccessException ex) {
-            throw new InternalAuthenticationServiceException("DB down", ex);
+            throw new BankServiceRuntimeException("Could not establish authentification due to internal issues");
         }
 
         return new org.springframework.security.core.userdetails.User(

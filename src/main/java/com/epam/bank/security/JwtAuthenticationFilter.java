@@ -36,6 +36,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        log.info("ENTRY: " + JwtAuthenticationFilter.class);
+
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         try {
             String jwt = null;
@@ -87,7 +93,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (DataAccessResourceFailureException | InternalAuthenticationServiceException ex) {
-            log.error("Database connection failure in JWT filter", ex);
+            log.error("Database connection failure in JWT filter: " + ex.getMessage());
             response.sendRedirect("/service-unavailable");
         }
 
