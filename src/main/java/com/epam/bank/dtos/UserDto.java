@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Data
 @AllArgsConstructor
-public class UserDTO {
+public class UserDto {
 
     @org.hibernate.validator.constraints.UUID @Nullable
     UUID id;
@@ -29,5 +29,5 @@ public class UserDTO {
     @NotNull
     Role role;
     @NotNull @PositiveOrZero
-    BankAccountDTO bankAccount;
+    BankAccountDto bankAccount;
 }

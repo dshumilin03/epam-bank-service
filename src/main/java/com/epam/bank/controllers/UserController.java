@@ -1,8 +1,8 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.UserCredentialsDTO;
+import com.epam.bank.dtos.UserCredentialsDto;
 import com.epam.bank.dtos.RegisterRequest;
-import com.epam.bank.dtos.UserDTO;
+import com.epam.bank.dtos.UserDto;
 import com.epam.bank.services.UserService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -20,35 +20,35 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserDTO> register(@RequestBody @Valid RegisterRequest registerRequest) {
-        UserDTO userDTO = userService.register(registerRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userDTO);
+    public ResponseEntity<UserDto> register(@RequestBody @Valid RegisterRequest registerRequest) {
+        UserDto userDto = userService.register(registerRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDTO> getById(@PathVariable @Valid UUID userId) {
-        UserDTO userDTO = userService.getById(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(userDTO);
+    public ResponseEntity<UserDto> getById(@PathVariable @Valid UUID userId) {
+        UserDto userDto = userService.getById(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(userDto);
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDTO>> getById(@RequestParam(value = "full_name") String fullName) {
-        List<UserDTO> userDTOList = userService.getByFullName(fullName);
-        return ResponseEntity.status(HttpStatus.OK).body(userDTOList);
+    public ResponseEntity<List<UserDto>> getById(@RequestParam(value = "full_name") String fullName) {
+        List<UserDto> userDtoList = userService.getByFullName(fullName);
+        return ResponseEntity.status(HttpStatus.OK).body(userDtoList);
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<UserDTO> changeCredentials(@PathVariable UUID userId, @RequestBody @Valid UserCredentialsDTO credentialsDTO) {
-        UserDTO updated = userService.changeCredentials(userId, credentialsDTO);
+    public ResponseEntity<UserDto> changeCredentials(@PathVariable UUID userId, @RequestBody @Valid UserCredentialsDto credentialsDto) {
+        UserDto updated = userService.changeCredentials(userId, credentialsDto);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 
     @PatchMapping("/{userId}")
-    public ResponseEntity<UserDTO> changeDisabled(
+    public ResponseEntity<UserDto> changeDisabled(
             @PathVariable @Valid UUID userId,
             @RequestParam(name = "disabled") Boolean isDisabled
     ) {
-        UserDTO updated = userService.setStatus(userId, isDisabled);
+        UserDto updated = userService.setStatus(userId, isDisabled);
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }
 }

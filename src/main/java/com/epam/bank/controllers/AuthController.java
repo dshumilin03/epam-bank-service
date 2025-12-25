@@ -28,7 +28,7 @@ public class AuthController {
     private final JwtService jwtService;
 
     @PostMapping("/login")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request) {
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody @Valid AuthenticationRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.email(),
@@ -45,6 +45,11 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletResponse response) {
 
+        clearCookieAndContext(response);
+        return ResponseEntity.ok().build();
+    }
+
+    private void clearCookieAndContext(HttpServletResponse response) {
         SecurityContextHolder.clearContext();
         Cookie jwtCookie = new Cookie("JWT", null);
         jwtCookie.setHttpOnly(true);
@@ -53,6 +58,5 @@ public class AuthController {
         jwtCookie.setMaxAge(0);
 
         response.addCookie(jwtCookie);
-        return ResponseEntity.ok().build();
     }
 }

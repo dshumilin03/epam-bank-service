@@ -1,6 +1,6 @@
 package com.epam.bank.services.impl;
 
-import com.epam.bank.dtos.CardDTO;
+import com.epam.bank.dtos.CardDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Card;
 import com.epam.bank.entities.CardStatus;
@@ -8,12 +8,12 @@ import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.CardMapper;
 import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.CardRepository;
-import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.CardService;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.dao.DataAccessException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -29,44 +29,44 @@ public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final CardMapper cardMapper;
     private final BankAccountRepository bankAccountRepository;
-    private final EncryptionService encryptionService;
+    private final PasswordEncoder passwordEncoder;
+    private static final String NOT_FOUND_BY_NUMBER = "Card not found by card number";
+    private static final String NOT_FOUND_BY_ID = "Card not found by card id";
+    private final Random random = new Random();
 
     @Override
-    public CardDTO getByNumber(String cardNumber) {
+    public CardDto getByNumber(String cardNumber) {
 
         Card card = cardRepository.findByCardNumber(cardNumber)
-                .orElseThrow(() -> new NotFoundException("Card not found by card number"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_NUMBER));
 
-        return cardMapper.toDTO(card);
+        return cardMapper.toDto(card);
     }
 
     @Override
     public Card getEntityByNumber(String cardNumber) {
 
         return cardRepository.findByCardNumber(cardNumber)
-                .orElseThrow(() -> new NotFoundException("Card not found by card number"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_NUMBER));
     }
 
     @Override
-    public List<CardDTO> getByUserId(UUID userId) {
+    public List<CardDto> getByUserId(UUID userId) {
         List<Card> cards = cardRepository.findByUserId(userId);
 
-        List<CardDTO> result = new ArrayList<>();
+        List<CardDto> result = new ArrayList<>();
 
-        cards.forEach(card -> {
-            result.add(cardMapper.toDTO(card));
-        });
+        cards.forEach(card -> result.add(cardMapper.toDto(card)));
         return result;
     }
 
     @Override
-    public CardDTO create(UUID userId, Long bankAccountNumber) {
+    public CardDto create(UUID userId, Long bankAccountNumber) {
 
         BankAccount bankAccount = bankAccountRepository.findById(bankAccountNumber)
                 .orElseThrow(() -> new NotFoundException("BankAccount not found by number"));
 
         Card newCard = new Card();
-        Random random = new Random();
         int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
 
         String cvv = buildCode(false);
@@ -80,35 +80,34 @@ public class CardServiceImpl implements CardService {
         newCard.setStatus(CardStatus.ACTIVE);
         newCard.setOwnerName(bankAccount.getUser().getFullName());
 
-        newCard.setCvv(encryptionService.encrypt(cvv));
-        newCard.setPinCode(encryptionService.encrypt(pinCode));
-        return cardMapper.toDTO(cardRepository.save(newCard));
+        newCard.setCvv(passwordEncoder.encode(cvv));
+        newCard.setPinCode(passwordEncoder.encode(pinCode));
+        return cardMapper.toDto(cardRepository.save(newCard));
     }
 
     @Override
     public void changePin(UUID cardId, String newPin) {
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new NotFoundException("Card not found by Id"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
 
-        card.setPinCode(encryptionService.encrypt(newPin));
+        card.setPinCode(passwordEncoder.encode(newPin));
         cardRepository.save(card);
     }
 
     @Override
     @Transactional
-    public CardDTO renew(UUID cardId) {
+    public CardDto renew(UUID cardId) {
         try {
             Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new NotFoundException("Card not found by Id"));
+                    .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
 
             card.setExpiresAt(LocalDate.now().plusYears(5));
-            Random random = new Random();
             int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
-            card.setCardNumber("4043" + String.valueOf(card.getBankAccount().getBankAccountNumber()) + String.valueOf(randomNumberIdentification));
+            card.setCardNumber("4043" + card.getBankAccount().getBankAccountNumber() + randomNumberIdentification);
 
             Card updated = cardRepository.save(card);
 
-            return cardMapper.toDTO(updated);
+            return cardMapper.toDto(updated);
         } catch (DataAccessException ex) {
             log.error("Database connection error: {}", ex.getMessage());
         throw ex;
@@ -119,16 +118,15 @@ public class CardServiceImpl implements CardService {
     @Override
     public void block(UUID cardId) {
         Card card = cardRepository.findById(cardId)
-                .orElseThrow(() -> new NotFoundException("Card not found by Id"));
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
 
         card.setStatus(CardStatus.BLOCKED);
 
         cardRepository.save(card);
     }
 
-    private String buildCode(Boolean pin) {
+    private String buildCode(boolean pin) {
         StringBuilder sc = new StringBuilder();
-        Random random = new Random();
 
         sc.append(random.nextInt(9 - 1) + 1);
         sc.append(random.nextInt(9 - 1) + 1);

@@ -1,14 +1,13 @@
 package com.epam.bank.services;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.LoanDTO;
-import com.epam.bank.dtos.LoanRequestDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.LoanDto;
+import com.epam.bank.dtos.LoanRequestDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Loan;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.exceptions.UnknownStrategyTypeException;
-import com.epam.bank.mappers.BankAccountMapper;
 import com.epam.bank.mappers.LoanMapper;
 import com.epam.bank.repositories.LoanRepository;
 import com.epam.bank.services.impl.LoanServiceImpl;
@@ -48,7 +47,6 @@ class LoanServiceImplTest {
     private LoanMapper loanMapper;
 
     @Mock
-    private BankAccountMapper bankAccountMapper;
 
     @InjectMocks
     private LoanServiceImpl loanService;
@@ -56,17 +54,17 @@ class LoanServiceImplTest {
     @Captor
     private ArgumentCaptor<Loan> loanCaptor;
 
-    private final UUID LOAN_ID = UUID.randomUUID();
-    private final UUID USER_ID = UUID.randomUUID();
-    private final Long BANK_ACCOUNT_ID = 100L;
-    private final BigDecimal MONEY_LEFT = BigDecimal.valueOf(10000);
-    private final Double PERCENT = 5.0;
-    private final Long TERM_MONTHS = 12L;
+    private static final UUID LOAN_ID = UUID.randomUUID();
+    private static final UUID USER_ID = UUID.randomUUID();
+    private static final Long BANK_ACCOUNT_ID = 100L;
+    private static final BigDecimal MONEY_LEFT = BigDecimal.valueOf(10000);
+    private static final Double PERCENT = 5.0;
+    private static final Long TERM_MONTHS = 12L;
 
     private Loan loan;
-    private LoanDTO loanDTO;
-    private LoanRequestDTO loanRequestDTO;
-    private BankAccountDTO bankAccountDTO;
+    private LoanDto loanDto;
+    private LoanRequestDto loanRequestDto;
+    private BankAccountDto bankAccountDto;
     private BankAccount bankAccount;
 
     @BeforeEach
@@ -75,7 +73,7 @@ class LoanServiceImplTest {
         bankAccount.setBankAccountNumber(BANK_ACCOUNT_ID);
         bankAccount.setMoneyAmount(BigDecimal.valueOf(5000));
 
-        bankAccountDTO = new BankAccountDTO(
+        bankAccountDto = new BankAccountDto(
                 BANK_ACCOUNT_ID,
                 BigDecimal.valueOf(5000),
                 null,
@@ -94,17 +92,17 @@ class LoanServiceImplTest {
         loan.setNextChargeAt(LocalDateTime.now().plusMonths(1));
         loan.setTermMonths(TERM_MONTHS);
 
-        loanDTO = new LoanDTO();
-        loanDTO.setId(LOAN_ID);
-        loanDTO.setMoneyLeft(MONEY_LEFT);
-        loanDTO.setPercent(PERCENT);
-        loanDTO.setChargeStrategyType(ChargeStrategyType.MONTHLY);
-        loanDTO.setBankAccount(bankAccountDTO);
-        loanDTO.setCreatedAt(LocalDateTime.now());
-        loanDTO.setNextChargeAt(LocalDateTime.now().plusMonths(1));
-        loanDTO.setTermMonths(TERM_MONTHS);
+        loanDto = new LoanDto();
+        loanDto.setId(LOAN_ID);
+        loanDto.setMoneyLeft(MONEY_LEFT);
+        loanDto.setPercent(PERCENT);
+        loanDto.setChargeStrategyType(ChargeStrategyType.MONTHLY);
+        loanDto.setBankAccount(bankAccountDto);
+        loanDto.setCreatedAt(LocalDateTime.now());
+        loanDto.setNextChargeAt(LocalDateTime.now().plusMonths(1));
+        loanDto.setTermMonths(TERM_MONTHS);
 
-        loanRequestDTO = new LoanRequestDTO(
+        loanRequestDto = new LoanRequestDto(
                 MONEY_LEFT,
                 PERCENT,
                 ChargeStrategyType.MONTHLY,
@@ -122,14 +120,14 @@ class LoanServiceImplTest {
         void shouldReturnUserLoans() {
             List<Loan> loans = List.of(loan);
             when(loanRepository.findByUserId(USER_ID)).thenReturn(loans);
-            when(loanMapper.toDTO(loan)).thenReturn(loanDTO);
+            when(loanMapper.toDto(loan)).thenReturn(loanDto);
 
-            List<LoanDTO> result = loanService.getUserLoansByUserId(USER_ID);
+            List<LoanDto> result = loanService.getUserLoansByUserId(USER_ID);
 
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst()).isEqualTo(loanDTO);
+            assertThat(result.getFirst()).isEqualTo(loanDto);
             verify(loanRepository).findByUserId(USER_ID);
-            verify(loanMapper).toDTO(loan);
+            verify(loanMapper).toDto(loan);
         }
 
         @Test
@@ -137,11 +135,11 @@ class LoanServiceImplTest {
         void shouldReturnEmptyListWhenNoLoans() {
             when(loanRepository.findByUserId(USER_ID)).thenReturn(Collections.emptyList());
 
-            List<LoanDTO> result = loanService.getUserLoansByUserId(USER_ID);
+            List<LoanDto> result = loanService.getUserLoansByUserId(USER_ID);
 
             assertThat(result).isEmpty();
             verify(loanRepository).findByUserId(USER_ID);
-            verify(loanMapper, never()).toDTO(loan);
+            verify(loanMapper, never()).toDto(loan);
         }
 
         @Test
@@ -151,19 +149,19 @@ class LoanServiceImplTest {
             loan2.setId(UUID.randomUUID());
             loan2.setMoneyLeft(BigDecimal.valueOf(5000));
 
-            LoanDTO loanDTO2 = new LoanDTO();
-            loanDTO2.setId(loan2.getId());
-            loanDTO2.setMoneyLeft(BigDecimal.valueOf(5000));
+            LoanDto loanDto2 = new LoanDto();
+            loanDto2.setId(loan2.getId());
+            loanDto2.setMoneyLeft(BigDecimal.valueOf(5000));
 
             List<Loan> loans = List.of(loan, loan2);
             when(loanRepository.findByUserId(USER_ID)).thenReturn(loans);
-            when(loanMapper.toDTO(loan)).thenReturn(loanDTO);
-            when(loanMapper.toDTO(loan2)).thenReturn(loanDTO2);
+            when(loanMapper.toDto(loan)).thenReturn(loanDto);
+            when(loanMapper.toDto(loan2)).thenReturn(loanDto2);
 
-            List<LoanDTO> result = loanService.getUserLoansByUserId(USER_ID);
+            List<LoanDto> result = loanService.getUserLoansByUserId(USER_ID);
 
             assertThat(result).hasSize(2);
-            verify(loanMapper, times(2)).toDTO(any(Loan.class));
+            verify(loanMapper, times(2)).toDto(any(Loan.class));
         }
     }
 
@@ -202,13 +200,13 @@ class LoanServiceImplTest {
         @Test
         @DisplayName("Should open MONTHLY loan successfully")
         void shouldOpenMonthlyLoanSuccessfully() {
-            when(loanMapper.toDTO(loanRequestDTO)).thenReturn(loanDTO);
-            when(bankAccountService.getById(BANK_ACCOUNT_ID)).thenReturn(bankAccountDTO);
-            when(loanMapper.toEntity(loanDTO)).thenReturn(loan);
+            when(loanMapper.toDto(loanRequestDto)).thenReturn(loanDto);
+            when(bankAccountService.getById(BANK_ACCOUNT_ID)).thenReturn(bankAccountDto);
+            when(loanMapper.toEntity(loanDto)).thenReturn(loan);
             when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
-            when(loanMapper.toDTO(loan)).thenReturn(loanDTO);
+            when(loanMapper.toDto(loan)).thenReturn(loanDto);
 
-            LoanDTO result = loanService.open(loanRequestDTO);
+            LoanDto result = loanService.open(loanRequestDto);
 
             assertThat(result).isNotNull();
             verify(loanRepository).save(loanCaptor.capture());
@@ -221,7 +219,7 @@ class LoanServiceImplTest {
         @Test
         @DisplayName("Should open DAILY loan successfully")
         void shouldOpenDailyLoanSuccessfully() {
-            LoanRequestDTO dailyRequest = new LoanRequestDTO(
+            LoanRequestDto dailyRequest = new LoanRequestDto(
                     MONEY_LEFT,
                     PERCENT,
                     ChargeStrategyType.DAILY,
@@ -230,15 +228,15 @@ class LoanServiceImplTest {
             );
 
             loan.setChargeStrategyType(ChargeStrategyType.DAILY);
-            loanDTO.setChargeStrategyType(ChargeStrategyType.DAILY);
+            loanDto.setChargeStrategyType(ChargeStrategyType.DAILY);
 
-            when(loanMapper.toDTO(dailyRequest)).thenReturn(loanDTO);
-            when(bankAccountService.getById(BANK_ACCOUNT_ID)).thenReturn(bankAccountDTO);
-            when(loanMapper.toEntity(loanDTO)).thenReturn(loan);
+            when(loanMapper.toDto(dailyRequest)).thenReturn(loanDto);
+            when(bankAccountService.getById(BANK_ACCOUNT_ID)).thenReturn(bankAccountDto);
+            when(loanMapper.toEntity(loanDto)).thenReturn(loan);
             when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
-            when(loanMapper.toDTO(loan)).thenReturn(loanDTO);
+            when(loanMapper.toDto(loan)).thenReturn(loanDto);
 
-            LoanDTO result = loanService.open(dailyRequest);
+            LoanDto result = loanService.open(dailyRequest);
 
             assertThat(result).isNotNull();
             verify(loanRepository).save(loanCaptor.capture());
@@ -250,11 +248,11 @@ class LoanServiceImplTest {
         @Test
         @DisplayName("Should throw NotFoundException when bank account not found")
         void shouldThrowNotFoundWhenBankAccountNotFound() {
-            when(loanMapper.toDTO(loanRequestDTO)).thenReturn(loanDTO);
+            when(loanMapper.toDto(loanRequestDto)).thenReturn(loanDto);
             when(bankAccountService.getById(BANK_ACCOUNT_ID))
                     .thenThrow(new NotFoundException("Bank account not found"));
 
-            assertThatThrownBy(() -> loanService.open(loanRequestDTO))
+            assertThatThrownBy(() -> loanService.open(loanRequestDto))
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("Bank account not found");
 
@@ -266,11 +264,11 @@ class LoanServiceImplTest {
         void shouldThrowUnknownStrategyTypeForUnknownStrategy() {
             loan.setChargeStrategyType(null);
 
-            when(loanMapper.toDTO(loanRequestDTO)).thenReturn(loanDTO);
-            when(bankAccountService.getById(BANK_ACCOUNT_ID)).thenReturn(bankAccountDTO);
-            when(loanMapper.toEntity(loanDTO)).thenReturn(loan);
+            when(loanMapper.toDto(loanRequestDto)).thenReturn(loanDto);
+            when(bankAccountService.getById(BANK_ACCOUNT_ID)).thenReturn(bankAccountDto);
+            when(loanMapper.toEntity(loanDto)).thenReturn(loan);
 
-            assertThatThrownBy(() -> loanService.open(loanRequestDTO))
+            assertThatThrownBy(() -> loanService.open(loanRequestDto))
                     .isInstanceOf(UnknownStrategyTypeException.class)
                     .hasMessage("Unknown strategy type");
 
@@ -296,14 +294,14 @@ class LoanServiceImplTest {
             updatedLoan.setTermMonths(24L);
 
             when(loanRepository.findById(LOAN_ID)).thenReturn(Optional.of(loan));
-            when(loanMapper.toEntity(loanDTO)).thenReturn(updatedLoan);
+            when(loanMapper.toEntity(loanDto)).thenReturn(updatedLoan);
             when(loanRepository.save(loan)).thenReturn(loan);
-            when(loanMapper.toDTO(loan)).thenReturn(loanDTO);
+            when(loanMapper.toDto(loan)).thenReturn(loanDto);
 
-            LoanDTO result = loanService.update(LOAN_ID, loanDTO);
+            LoanDto result = loanService.update(LOAN_ID, loanDto);
 
             assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(loanDTO);
+            assertThat(result).isEqualTo(loanDto);
 
             verify(loanRepository).findById(LOAN_ID);
             verify(loanRepository).save(loan);
@@ -318,7 +316,7 @@ class LoanServiceImplTest {
         void shouldThrowNotFoundExceptionWhenUpdatingNonExistentLoan() {
             when(loanRepository.findById(LOAN_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> loanService.update(LOAN_ID, loanDTO))
+            assertThatThrownBy(() -> loanService.update(LOAN_ID, loanDto))
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("Loan not found by Id");
 
@@ -334,14 +332,14 @@ class LoanServiceImplTest {
         @DisplayName("Should return loan by ID")
         void shouldReturnLoanById() {
             when(loanRepository.findById(LOAN_ID)).thenReturn(Optional.of(loan));
-            when(loanMapper.toDTO(loan)).thenReturn(loanDTO);
+            when(loanMapper.toDto(loan)).thenReturn(loanDto);
 
-            LoanDTO result = loanService.getById(LOAN_ID);
+            LoanDto result = loanService.getById(LOAN_ID);
 
             assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(loanDTO);
+            assertThat(result).isEqualTo(loanDto);
             verify(loanRepository).findById(LOAN_ID);
-            verify(loanMapper).toDTO(loan);
+            verify(loanMapper).toDto(loan);
         }
 
         @Test
@@ -353,7 +351,7 @@ class LoanServiceImplTest {
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("Not found Loan by Id");
 
-            verify(loanMapper, never()).toDTO(loan);
+            verify(loanMapper, never()).toDto(loan);
         }
     }
 
@@ -368,8 +366,6 @@ class LoanServiceImplTest {
 
             Chargeable result = loanService.getEntityById(LOAN_ID);
 
-            assertThat(result).isNotNull();
-            assertThat(result).isInstanceOf(Loan.class);
             assertThat(result).isEqualTo(loan);
             verify(loanRepository).findById(LOAN_ID);
         }

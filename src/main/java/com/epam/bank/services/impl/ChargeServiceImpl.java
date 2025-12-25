@@ -54,7 +54,7 @@ public class ChargeServiceImpl implements ChargeService {
                     .moneyAmount(chargeAmount)
                     .build();
 
-            transactionMapper.toDTO(transactionRepository.save(newTransaction));
+            transactionMapper.toDto(transactionRepository.save(newTransaction));
         } catch (DataAccessException ex) {
             log.error("Database connection error: {}", ex.getMessage());
             throw ex;

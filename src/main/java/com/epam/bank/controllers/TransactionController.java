@@ -1,7 +1,7 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.TransactionDTO;
-import com.epam.bank.dtos.TransactionRequestDTO;
+import com.epam.bank.dtos.TransactionDto;
+import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.services.TransactionService;
 import jakarta.validation.Valid;
@@ -19,17 +19,17 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping
-    public ResponseEntity<TransactionDTO> create(@RequestBody @Valid TransactionRequestDTO transactionRequestDTO) {
-        TransactionDTO transactionDTO = transactionService.create(transactionRequestDTO);
+    public ResponseEntity<TransactionDto> create(@RequestBody @Valid TransactionRequestDto transactionRequestDto) {
+        TransactionDto transactionDto = transactionService.create(transactionRequestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(transactionDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(transactionDto);
     }
 
     @GetMapping("/{transactionId}")
-    public ResponseEntity<TransactionDTO> getById(@PathVariable UUID transactionId) {
-        TransactionDTO transactionDTO = transactionService.getById(transactionId);
+    public ResponseEntity<TransactionDto> getById(@PathVariable UUID transactionId) {
+        TransactionDto transactionDto = transactionService.getById(transactionId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(transactionDTO);
+        return ResponseEntity.status(HttpStatus.OK).body(transactionDto);
     }
 
     @PostMapping("/{transactionId}")
@@ -46,8 +46,8 @@ public class TransactionController {
     }
 
     @PutMapping("/{transactionId}")
-    public ResponseEntity<TransactionDTO> update(@PathVariable UUID transactionId, @RequestBody @Valid TransactionDTO transactionDTO) {
-        TransactionDTO updated = transactionService.update(transactionDTO);
+    public ResponseEntity<TransactionDto> update(@PathVariable UUID transactionId, @RequestBody @Valid TransactionDto transactionDto) {
+        TransactionDto updated = transactionService.update(transactionId, transactionDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }

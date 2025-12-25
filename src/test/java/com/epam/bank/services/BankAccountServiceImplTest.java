@@ -1,8 +1,8 @@
 package com.epam.bank.services;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.TransactionDTO;
-import com.epam.bank.dtos.UserDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.TransactionDto;
+import com.epam.bank.dtos.UserDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Transaction;
 import com.epam.bank.entities.TransactionStatus;
@@ -50,9 +50,9 @@ class BankAccountServiceImplTest {
     @InjectMocks
     private BankAccountServiceImpl bankAccountService;
 
-    private final UUID USER_ID = UUID.randomUUID();
-    private final Long ACCOUNT_ID = 1L;
-    private final BigDecimal INITIAL_BALANCE = BigDecimal.valueOf(1000);
+    private static final UUID USER_ID = UUID.randomUUID();
+    private static final Long ACCOUNT_ID = 1L;
+    private static final BigDecimal INITIAL_BALANCE = BigDecimal.valueOf(1000);
 
     @Nested
     @DisplayName("Tests for create()")
@@ -69,18 +69,18 @@ class BankAccountServiceImplTest {
             savedAccount.setMoneyAmount(BigDecimal.ZERO);
             savedAccount.setUser(user);
 
-            UserDTO userDTO = mock(UserDTO.class);
-            BankAccountDTO expectedDTO = new BankAccountDTO(
-                    ACCOUNT_ID, BigDecimal.ZERO, userDTO.getId(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>()
+            UserDto userDto = mock(UserDto.class);
+            BankAccountDto expectedDto = new BankAccountDto(
+                    ACCOUNT_ID, BigDecimal.ZERO, userDto.getId(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>()
             );
 
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
             when(bankAccountRepository.save(any(BankAccount.class))).thenReturn(savedAccount);
-            when(bankAccountMapper.toDTO(savedAccount)).thenReturn(expectedDTO);
+            when(bankAccountMapper.toDto(savedAccount)).thenReturn(expectedDto);
 
-            BankAccountDTO result = bankAccountService.create(USER_ID);
+            BankAccountDto result = bankAccountService.create(USER_ID);
 
-            assertThat(result).isEqualTo(expectedDTO);
+            assertThat(result).isEqualTo(expectedDto);
             verify(bankAccountRepository).save(any(BankAccount.class));
             verify(userRepository).findById(USER_ID);
         }
@@ -103,19 +103,19 @@ class BankAccountServiceImplTest {
     class GetByIdTests {
 
         @Test
-        @DisplayName("Should return BankAccountDTO when account exists")
+        @DisplayName("Should return BankAccountDto when account exists")
         void shouldReturnAccountById() {
             BankAccount account = new BankAccount();
             account.setBankAccountNumber(ACCOUNT_ID);
 
-            BankAccountDTO expectedDTO = mock(BankAccountDTO.class);
+            BankAccountDto expectedDto = mock(BankAccountDto.class);
 
             when(bankAccountRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(account));
-            when(bankAccountMapper.toDTO(account)).thenReturn(expectedDTO);
+            when(bankAccountMapper.toDto(account)).thenReturn(expectedDto);
 
-            BankAccountDTO result = bankAccountService.getById(ACCOUNT_ID);
+            BankAccountDto result = bankAccountService.getById(ACCOUNT_ID);
 
-            assertThat(result).isEqualTo(expectedDTO);
+            assertThat(result).isEqualTo(expectedDto);
         }
 
         @Test
@@ -143,16 +143,16 @@ class BankAccountServiceImplTest {
             List<Transaction> outgoingList = List.of(transaction);
             account.setOutgoingTransactions(outgoingList);
 
-            TransactionDTO transactionDTO = new TransactionDTO();
+            TransactionDto transactionDto = new TransactionDto();
 
             when(bankAccountRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(account));
-            when(transactionMapper.toDTO(transaction)).thenReturn(transactionDTO);
+            when(transactionMapper.toDto(transaction)).thenReturn(transactionDto);
 
-            List<TransactionDTO> result = bankAccountService.getTransactions(ACCOUNT_ID, true);
+            List<TransactionDto> result = bankAccountService.getTransactions(ACCOUNT_ID, true);
 
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst()).isEqualTo(transactionDTO);
-            verify(transactionMapper).toDTO(transaction);
+            assertThat(result.getFirst()).isEqualTo(transactionDto);
+            verify(transactionMapper).toDto(transaction);
         }
 
         @Test
@@ -166,15 +166,15 @@ class BankAccountServiceImplTest {
             account.setIncomingTransactions(incomingList);
             account.setOutgoingTransactions(new ArrayList<>());
 
-            TransactionDTO transactionDTO = new TransactionDTO();
+            TransactionDto transactionDto = new TransactionDto();
 
             when(bankAccountRepository.findById(ACCOUNT_ID)).thenReturn(Optional.of(account));
-            when(transactionMapper.toDTO(transaction)).thenReturn(transactionDTO);
+            when(transactionMapper.toDto(transaction)).thenReturn(transactionDto);
 
-            List<TransactionDTO> result = bankAccountService.getTransactions(ACCOUNT_ID, false);
+            List<TransactionDto> result = bankAccountService.getTransactions(ACCOUNT_ID, false);
 
             assertThat(result).hasSize(1);
-            assertThat(result.getFirst()).isEqualTo(transactionDTO);
+            assertThat(result.getFirst()).isEqualTo(transactionDto);
         }
 
         @Test

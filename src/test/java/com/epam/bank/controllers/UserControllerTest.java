@@ -1,8 +1,8 @@
 package com.epam.bank.controllers;
 
 import com.epam.bank.dtos.RegisterRequest;
-import com.epam.bank.dtos.UserCredentialsDTO;
-import com.epam.bank.dtos.UserDTO;
+import com.epam.bank.dtos.UserCredentialsDto;
+import com.epam.bank.dtos.UserDto;
 import com.epam.bank.entities.Role;
 import com.epam.bank.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,12 +37,12 @@ public class UserControllerTest {
     private MockMvc mockMvc;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private final UUID TEST_USER_ID = UUID.randomUUID();
-    private final String TEST_FULL_NAME = "John Doe";
-    private final String TEST_EMAIL = "test@example.com";
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
+    private static final String TEST_FULL_NAME = "John Doe";
+    private static final String TEST_EMAIL = "test@example.com";
 
-    private List<UserDTO> createMockUserDTO() {
-        return List.of(new UserDTO(
+    private List<UserDto> createMockUserDto() {
+        return List.of(new UserDto(
                 TEST_USER_ID,
                 TEST_FULL_NAME,
                 "AB123456",
@@ -54,16 +54,16 @@ public class UserControllerTest {
         ));
     }
 
-    private UserDTO createUpdatedUserDTO(UserDTO baseDTO, String newEmail, Boolean newIsDisabled) {
-        return new UserDTO(
-                baseDTO.getId(),
-                baseDTO.getFullName(),
-                baseDTO.getPassportId(),
-                newEmail != null ? newEmail : baseDTO.getEmail(),
-                baseDTO.getPassword(),
-                newIsDisabled != null ? newIsDisabled : baseDTO.getIsDisabled(),
-                baseDTO.getRole(),
-                baseDTO.getBankAccount()
+    private UserDto createUpdatedUserDto(UserDto baseDto, String newEmail, Boolean newIsDisabled) {
+        return new UserDto(
+                baseDto.getId(),
+                baseDto.getFullName(),
+                baseDto.getPassportId(),
+                newEmail != null ? newEmail : baseDto.getEmail(),
+                baseDto.getPassword(),
+                newIsDisabled != null ? newIsDisabled : baseDto.getIsDisabled(),
+                baseDto.getRole(),
+                baseDto.getBankAccount()
         );
     }
 
@@ -88,8 +88,8 @@ public class UserControllerTest {
     @Test
     void register_ShouldReturnNewUser_AndStatus201() throws Exception {
         RegisterRequest request = createMockRegisterRequest();
-        List<UserDTO> mockDTO = createMockUserDTO();
-        when(userService.register(any(RegisterRequest.class))).thenReturn(mockDTO.getFirst());
+        List<UserDto> mockDto = createMockUserDto();
+        when(userService.register(any(RegisterRequest.class))).thenReturn(mockDto.getFirst());
 
         mockMvc.perform(post("/api/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -102,8 +102,8 @@ public class UserControllerTest {
 
     @Test
     void getById_ShouldReturnUser_AndStatus200() throws Exception {
-        List<UserDTO> mockDTO = createMockUserDTO();
-        when(userService.getById(TEST_USER_ID)).thenReturn(mockDTO.getFirst());
+        List<UserDto> mockDto = createMockUserDto();
+        when(userService.getById(TEST_USER_ID)).thenReturn(mockDto.getFirst());
 
         mockMvc.perform(get("/api/users/{userId}", TEST_USER_ID))
                 .andExpect(status().isOk())
@@ -114,8 +114,8 @@ public class UserControllerTest {
 
     @Test
     void getByFullName_ShouldReturnUser_AndStatus200() throws Exception {
-        List<UserDTO> mockDTO = createMockUserDTO();
-        when(userService.getByFullName(TEST_FULL_NAME)).thenReturn(mockDTO);
+        List<UserDto> mockDto = createMockUserDto();
+        when(userService.getByFullName(TEST_FULL_NAME)).thenReturn(mockDto);
 
         mockMvc.perform(get("/api/users")
                         .param("full_name", TEST_FULL_NAME))
@@ -126,29 +126,29 @@ public class UserControllerTest {
 
     @Test
     void changeCredentials_ShouldReturnUpdatedUser_AndStatus200() throws Exception {
-        List<UserDTO> baseDTO = createMockUserDTO();
-        UserCredentialsDTO credentialsDTO = new UserCredentialsDTO("new@example.com", "newpassword", Role.USER);
+        List<UserDto> baseDto = createMockUserDto();
+        UserCredentialsDto credentialsDto = new UserCredentialsDto("new@example.com", "newpassword", Role.USER);
 
-        UserDTO updatedDTO = createUpdatedUserDTO(baseDTO.getFirst(), credentialsDTO.email(), null);
+        UserDto updatedDto = createUpdatedUserDto(baseDto.getFirst(), credentialsDto.email(), null);
 
-        when(userService.changeCredentials(eq(TEST_USER_ID), any(UserCredentialsDTO.class))).thenReturn(updatedDTO);
+        when(userService.changeCredentials(eq(TEST_USER_ID), any(UserCredentialsDto.class))).thenReturn(updatedDto);
 
         mockMvc.perform(put("/api/users/{userId}", TEST_USER_ID)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(credentialsDTO)))
+                        .content(objectMapper.writeValueAsString(credentialsDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("new@example.com"));
 
-        verify(userService).changeCredentials(eq(TEST_USER_ID), any(UserCredentialsDTO.class));
+        verify(userService).changeCredentials(eq(TEST_USER_ID), any(UserCredentialsDto.class));
     }
 
     @Test
     void changeDisabled_ShouldReturnUpdatedUser_AndStatus200() throws Exception {
-        List<UserDTO> baseDTO = createMockUserDTO();
+        List<UserDto> baseDto = createMockUserDto();
 
-        UserDTO disabledUserDTO = createUpdatedUserDTO(baseDTO.getFirst(), null, true);
+        UserDto disabledUserDto = createUpdatedUserDto(baseDto.getFirst(), null, true);
 
-        when(userService.setStatus(TEST_USER_ID, true)).thenReturn(disabledUserDTO);
+        when(userService.setStatus(TEST_USER_ID, true)).thenReturn(disabledUserDto);
 
         mockMvc.perform(patch("/api/users/{userId}", TEST_USER_ID)
                         .param("disabled", "true"))

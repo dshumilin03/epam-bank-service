@@ -1,9 +1,8 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.TransactionDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.entities.TransactionStatus;
-import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.services.BankAccountService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,36 +20,36 @@ public class BankAccountController {
     private final BankAccountService bankAccountService;
 
     @PostMapping("/users/{userId}")
-    public ResponseEntity<BankAccountDTO> createBankAccount(@PathVariable UUID userId) {
-        BankAccountDTO accountDTO = bankAccountService.create(userId);
-        return ResponseEntity.ok().body(accountDTO);
+    public ResponseEntity<BankAccountDto> createBankAccount(@PathVariable UUID userId) {
+        BankAccountDto accountDto = bankAccountService.create(userId);
+        return ResponseEntity.ok().body(accountDto);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BankAccountDTO> getById(@PathVariable Long id) {
-        BankAccountDTO result = bankAccountService.getById(id);
+    public ResponseEntity<BankAccountDto> getById(@PathVariable Long id) {
+        BankAccountDto result = bankAccountService.getById(id);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @GetMapping("/transactions/{transactionId}")
-    public ResponseEntity<List<TransactionDTO>> getTransactions(@PathVariable Long transactionId, @RequestParam(name = "outgoing") boolean outgoing) {
-        List<TransactionDTO> transactionDTOS = bankAccountService.getTransactions(transactionId, outgoing);
+    public ResponseEntity<List<TransactionDto>> getTransactions(@PathVariable Long transactionId, @RequestParam(name = "outgoing") boolean outgoing) {
+        List<TransactionDto> transactionDtoS = bankAccountService.getTransactions(transactionId, outgoing);
 
-        return ResponseEntity.status(HttpStatus.OK).body(transactionDTOS);
+        return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
     }
 
     @GetMapping("/transactions/charges/users/{userId}")
-    public ResponseEntity<List<TransactionDTO>> getChargesByUserId(@PathVariable UUID userId) {
-        List<TransactionDTO> transactionDTOS = bankAccountService.getChargesByUserId(userId);
+    public ResponseEntity<List<TransactionDto>> getChargesByUserId(@PathVariable UUID userId) {
+        List<TransactionDto> transactionDtoS = bankAccountService.getChargesByUserId(userId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(transactionDTOS);
+        return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
     }
 
     @GetMapping(value = "/transactions/{userId}", params = "pending=true")
-    public ResponseEntity<List<TransactionDTO>> getLoans(@PathVariable UUID userId) {
-        List<TransactionDTO> transactionDTOS = bankAccountService.getChargesByUserId(userId);
+    public ResponseEntity<List<TransactionDto>> getLoans(@PathVariable UUID userId) {
+        List<TransactionDto> transactionDtoS = bankAccountService.getChargesByUserId(userId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(transactionDTOS);
+        return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
     }
 
     @PatchMapping(value = "/{bankNumber}", params = "action=withdraw")

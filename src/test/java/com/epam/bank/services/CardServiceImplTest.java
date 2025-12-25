@@ -1,6 +1,6 @@
 package com.epam.bank.services;
 
-import com.epam.bank.dtos.CardDTO;
+import com.epam.bank.dtos.CardDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Card;
 import com.epam.bank.entities.CardStatus;
@@ -9,7 +9,6 @@ import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.CardMapper;
 import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.CardRepository;
-import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.impl.CardServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +20,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -46,7 +46,7 @@ class CardServiceImplTest {
     private CardMapper cardMapper;
 
     @Mock
-    private EncryptionService encryptionService;
+    private PasswordEncoder passwordEncoder;
 
     @Mock
     private BankAccountRepository bankAccountRepository;
@@ -57,22 +57,21 @@ class CardServiceImplTest {
     @Captor
     private ArgumentCaptor<Card> cardCaptor;
 
-    private final UUID CARD_ID = UUID.randomUUID();
-    private final UUID USER_ID = UUID.randomUUID();
-    private final Long BANK_ACCOUNT_NUMBER = 100L;
-    private final String CARD_NUMBER = "4043100001";
-    private final String FULL_NAME = "John Doe";
-    private final String CVV = "123";
-    private final String PIN_CODE = "1234";
+    private static final UUID CARD_ID = UUID.randomUUID();
+    private static final UUID USER_ID = UUID.randomUUID();
+    private static final Long BANK_ACCOUNT_NUMBER = 100L;
+    private static final String CARD_NUMBER = "4043100001";
+    private static final String FULL_NAME = "John Doe";
+    private static final String CVV = "123";
+    private static final String PIN_CODE = "1234";
 
     private Card card;
-    private CardDTO cardDTO;
+    private CardDto cardDto;
     private BankAccount bankAccount;
-    private User user;
 
     @BeforeEach
     void setUp() {
-        user = new User();
+        User user = new User();
         user.setId(USER_ID);
         user.setFullName(FULL_NAME);
 
@@ -90,12 +89,12 @@ class CardServiceImplTest {
         card.setBankAccount(bankAccount);
         card.setPinCode(PIN_CODE);
 
-        cardDTO = new CardDTO();
-        cardDTO.setId(CARD_ID);
-        cardDTO.setCardNumber(CARD_NUMBER);
-        cardDTO.setOwnerName(FULL_NAME);
-        cardDTO.setExpiresAt(LocalDate.now().plusYears(5));
-        cardDTO.setCvv(CVV);
+        cardDto = new CardDto();
+        cardDto.setId(CARD_ID);
+        cardDto.setCardNumber(CARD_NUMBER);
+        cardDto.setOwnerName(FULL_NAME);
+        cardDto.setExpiresAt(LocalDate.now().plusYears(5));
+        cardDto.setCvv(CVV);
     }
 
     @Nested
@@ -106,15 +105,15 @@ class CardServiceImplTest {
         @DisplayName("Should return card by card number")
         void shouldReturnCardByNumber() {
             when(cardRepository.findByCardNumber(CARD_NUMBER)).thenReturn(Optional.of(card));
-            when(cardMapper.toDTO(card)).thenReturn(cardDTO);
+            when(cardMapper.toDto(card)).thenReturn(cardDto);
 
-            CardDTO result = cardService.getByNumber(CARD_NUMBER);
+            CardDto result = cardService.getByNumber(CARD_NUMBER);
 
             assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(cardDTO);
+            assertThat(result).isEqualTo(cardDto);
             assertThat(result.getCardNumber()).isEqualTo(CARD_NUMBER);
             verify(cardRepository).findByCardNumber(CARD_NUMBER);
-            verify(cardMapper).toDTO(card);
+            verify(cardMapper).toDto(card);
         }
 
         @Test
@@ -126,7 +125,7 @@ class CardServiceImplTest {
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("Card not found by card number");
 
-            verify(cardMapper, never()).toDTO(any());
+            verify(cardMapper, never()).toDto(any());
         }
     }
 
@@ -139,14 +138,14 @@ class CardServiceImplTest {
         void shouldReturnUserCards() {
             List<Card> cards = List.of(card);
             when(cardRepository.findByUserId(USER_ID)).thenReturn(cards);
-            when(cardMapper.toDTO(card)).thenReturn(cardDTO);
+            when(cardMapper.toDto(card)).thenReturn(cardDto);
 
-            List<CardDTO> result = cardService.getByUserId(USER_ID);
+            List<CardDto> result = cardService.getByUserId(USER_ID);
 
             assertThat(result).hasSize(1);
-            assertThat(result.get(0)).isEqualTo(cardDTO);
+            assertThat(result.getFirst()).isEqualTo(cardDto);
             verify(cardRepository).findByUserId(USER_ID);
-            verify(cardMapper).toDTO(card);
+            verify(cardMapper).toDto(card);
         }
 
         @Test
@@ -154,11 +153,11 @@ class CardServiceImplTest {
         void shouldReturnEmptyListWhenNoCards() {
             when(cardRepository.findByUserId(USER_ID)).thenReturn(Collections.emptyList());
 
-            List<CardDTO> result = cardService.getByUserId(USER_ID);
+            List<CardDto> result = cardService.getByUserId(USER_ID);
 
             assertThat(result).isEmpty();
             verify(cardRepository).findByUserId(USER_ID);
-            verify(cardMapper, never()).toDTO(any());
+            verify(cardMapper, never()).toDto(any());
         }
 
         @Test
@@ -168,19 +167,19 @@ class CardServiceImplTest {
             card2.setId(UUID.randomUUID());
             card2.setCardNumber("4043100002");
 
-            CardDTO cardDTO2 = new CardDTO();
-            cardDTO2.setId(card2.getId());
-            cardDTO2.setCardNumber("4043100002");
+            CardDto cardDto2 = new CardDto();
+            cardDto2.setId(card2.getId());
+            cardDto2.setCardNumber("4043100002");
 
             List<Card> cards = List.of(card, card2);
             when(cardRepository.findByUserId(USER_ID)).thenReturn(cards);
-            when(cardMapper.toDTO(card)).thenReturn(cardDTO);
-            when(cardMapper.toDTO(card2)).thenReturn(cardDTO2);
+            when(cardMapper.toDto(card)).thenReturn(cardDto);
+            when(cardMapper.toDto(card2)).thenReturn(cardDto2);
 
-            List<CardDTO> result = cardService.getByUserId(USER_ID);
+            List<CardDto> result = cardService.getByUserId(USER_ID);
 
             assertThat(result).hasSize(2);
-            verify(cardMapper, times(2)).toDTO(any(Card.class));
+            verify(cardMapper, times(2)).toDto(any(Card.class));
         }
     }
 
@@ -193,15 +192,15 @@ class CardServiceImplTest {
             when(bankAccountRepository.findById(BANK_ACCOUNT_NUMBER))
                     .thenReturn(Optional.of(bankAccount));
 
-            lenient().when(encryptionService.encrypt(anyString()))
+            lenient().when(passwordEncoder.encode(anyString()))
                     .thenAnswer(inv -> "ENCRYPTED_" + inv.getArgument(0));
 
             lenient().when(cardRepository.save(any(Card.class)))
                     .thenAnswer(inv -> inv.getArgument(0));
 
-            lenient().when(cardMapper.toDTO(any(Card.class))).thenAnswer(inv -> {
+            lenient().when(cardMapper.toDto(any(Card.class))).thenAnswer(inv -> {
                 Card c = inv.getArgument(0);
-                CardDTO dto = new CardDTO();
+                CardDto dto = new CardDto();
                 dto.setCardNumber(c.getCardNumber());
                 dto.setExpiresAt(c.getExpiresAt());
                 dto.setOwnerName(c.getOwnerName());
@@ -212,18 +211,18 @@ class CardServiceImplTest {
         @Test
         @DisplayName("Should create card successfully (Overall Check)")
         void shouldCreateCardSuccessfully() {
-            CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
+            CardDto result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
             assertThat(result).isNotNull();
             verify(bankAccountRepository).findById(BANK_ACCOUNT_NUMBER);
             verify(cardRepository).save(any(Card.class));
-            verify(cardMapper).toDTO(any(Card.class));
+            verify(cardMapper).toDto(any(Card.class));
         }
 
         @Test
         @DisplayName("Should generate card number with correct format")
         void shouldGenerateCardNumberWithCorrectFormat() {
-            CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
+            CardDto result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
             assertThat(result.getCardNumber()).startsWith("4043");
             assertThat(result.getCardNumber()).contains(BANK_ACCOUNT_NUMBER.toString());
@@ -232,7 +231,7 @@ class CardServiceImplTest {
         @Test
         @DisplayName("Should set card expiration to 5 years from now")
         void shouldSetExpirationTo5Years() {
-            CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
+            CardDto result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
             assertThat(result.getExpiresAt())
                     .isCloseTo(LocalDate.now().plusYears(5), within(1, ChronoUnit.DAYS));
@@ -252,7 +251,7 @@ class CardServiceImplTest {
         @Test
         @DisplayName("Should set owner name from bank account user")
         void shouldSetOwnerNameFromBankAccountUser() {
-            CardDTO result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
+            CardDto result = cardService.create(USER_ID, BANK_ACCOUNT_NUMBER);
 
             assertThat(result.getOwnerName()).isEqualTo(FULL_NAME);
 
@@ -270,7 +269,7 @@ class CardServiceImplTest {
                     .hasMessage("BankAccount not found by number");
 
             verify(cardRepository, never()).save(any());
-            verify(encryptionService, never()).encrypt(anyString());
+            verify(passwordEncoder, never()).encode(anyString());
         }
     }
 
@@ -286,7 +285,7 @@ class CardServiceImplTest {
             card.setPinCode("123");
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
             when(cardRepository.save(any(Card.class))).thenAnswer(invocation -> invocation.getArgument(0));
-            when(encryptionService.encrypt(newPin)).thenReturn(newPin);
+            when(passwordEncoder.encode(newPin)).thenReturn(newPin);
 
             cardService.changePin(CARD_ID, newPin);
 
@@ -317,12 +316,11 @@ class CardServiceImplTest {
         void shouldRenewCardSuccessfully() {
             when(cardRepository.findById(CARD_ID)).thenReturn(Optional.of(card));
             when(cardRepository.save(any(Card.class))).thenAnswer(inv -> inv.getArgument(0));
-            when(cardMapper.toDTO(card)).thenReturn(cardDTO);
+            when(cardMapper.toDto(card)).thenReturn(cardDto);
 
-            CardDTO result = cardService.renew(CARD_ID);
+            CardDto result = cardService.renew(CARD_ID);
 
-            assertThat(result).isNotNull();
-            assertThat(result).isEqualTo(cardDTO);
+            assertThat(result).isEqualTo(cardDto);
             verify(cardRepository).findById(CARD_ID);
             verify(cardRepository).save(cardCaptor.capture());
 

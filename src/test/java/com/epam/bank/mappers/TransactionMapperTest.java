@@ -1,18 +1,15 @@
 package com.epam.bank.mappers;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.TransactionDTO;
-import com.epam.bank.dtos.TransactionRequestDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.TransactionDto;
+import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Transaction;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
 import com.epam.bank.mappers.impl.TransactionMapperImpl;
-import lombok.AllArgsConstructor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,8 +20,6 @@ import java.util.Collections;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionMapperTest {
@@ -32,23 +27,20 @@ class TransactionMapperTest {
     @InjectMocks
     private TransactionMapper mapper = new TransactionMapperImpl();
 
-    @Mock
-    private BankAccountMapper bankAccountMapper;
-
     @Test
-    void shouldMapDTOToEntity() {
-        BankAccountDTO sourceDTO = new BankAccountDTO(10L, BigDecimal.TEN, UUID.randomUUID(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-        BankAccountDTO targetDTO = new BankAccountDTO(20L, BigDecimal.ZERO, UUID.randomUUID(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+    void shouldMapDtoToEntity() {
+        BankAccountDto sourceDto = new BankAccountDto(10L, BigDecimal.TEN, UUID.randomUUID(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
+        BankAccountDto targetDto = new BankAccountDto(20L, BigDecimal.ZERO, UUID.randomUUID(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 
-        TransactionDTO dto = new TransactionDTO();
+        TransactionDto dto = new TransactionDto();
         dto.setId(UUID.randomUUID());
         dto.setMoneyAmount(new BigDecimal("100.00"));
         dto.setStatus(TransactionStatus.COMPLETED);
         dto.setTransactionType(TransactionType.TRANSFER);
         dto.setCreatedAt(LocalDateTime.now());
         dto.setDescription("Payment");
-        dto.setSourceBankAccountNumber(sourceDTO.bankAccountNumber());
-        dto.setTargetBankAccountNumber(targetDTO.bankAccountNumber());
+        dto.setSourceBankAccountNumber(sourceDto.bankAccountNumber());
+        dto.setTargetBankAccountNumber(targetDto.bankAccountNumber());
 
         Transaction entity = mapper.toEntity(dto);
 
@@ -61,8 +53,8 @@ class TransactionMapperTest {
     }
 
     @Test
-    void shouldMapRequestDTOToEntity() {
-        TransactionRequestDTO request = new TransactionRequestDTO(
+    void shouldMapRequestDtoToEntity() {
+        TransactionRequestDto request = new TransactionRequestDto(
                 new BigDecimal("500.00"),
                 "Deposit test",
                 TransactionType.DEPOSIT,
@@ -82,7 +74,7 @@ class TransactionMapperTest {
     }
 
     @Test
-    void shouldMapEntityToDTO() {
+    void shouldMapEntityToDto() {
         BankAccount sourceAcc = new BankAccount();
         sourceAcc.setBankAccountNumber(1L);
 
@@ -98,7 +90,7 @@ class TransactionMapperTest {
                 .build();
 
 
-        TransactionDTO dto = mapper.toDTO(transaction);
+        TransactionDto dto = mapper.toDto(transaction);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getStatus()).isEqualTo(transaction.getStatus());
@@ -108,8 +100,8 @@ class TransactionMapperTest {
     }
 
     @Test
-    void shouldMapRequestDTOToTransactionDTO() {
-        TransactionRequestDTO request = new TransactionRequestDTO(
+    void shouldMapRequestDtoToTransactionDto() {
+        TransactionRequestDto request = new TransactionRequestDto(
                 new BigDecimal("777.77"),
                 "Quick transfer",
                 TransactionType.TRANSFER,
@@ -117,7 +109,7 @@ class TransactionMapperTest {
                 40L
         );
 
-        TransactionDTO dto = mapper.toDTO(request);
+        TransactionDto dto = mapper.toDto(request);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getMoneyAmount()).isEqualTo(request.moneyAmount());

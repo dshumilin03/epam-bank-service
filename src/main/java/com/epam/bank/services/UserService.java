@@ -1,22 +1,22 @@
 package com.epam.bank.services;
 
-import com.epam.bank.dtos.UserCredentialsDTO;
+import com.epam.bank.dtos.UserCredentialsDto;
 import com.epam.bank.dtos.RegisterRequest;
-import com.epam.bank.dtos.UserDTO;
+import com.epam.bank.dtos.UserDto;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
-    UserDTO register(RegisterRequest registerUserDTO);
+    UserDto register(RegisterRequest registerUserDto);
 
-    UserDTO changeCredentials(UUID userId, UserCredentialsDTO userCredentialsDTO);
+    UserDto changeCredentials(UUID userId, UserCredentialsDto userCredentialsDto);
 
-    UserDTO getById(UUID uuid);
+    UserDto getById(UUID uuid);
 
-    UserDTO setStatus(UUID userId, Boolean disabled);
+    UserDto setStatus(UUID userId, Boolean disabled);
 
-    List<UserDTO> getByFullName(String fullName);
+    List<UserDto> getByFullName(String fullName);
 
-    UserDTO getByEmail(String email);
+    UserDto getByEmail(String email);
 }

@@ -1,6 +1,6 @@
 package com.epam.bank.mappers;
 
-import com.epam.bank.dtos.BankAccountDTO;
+import com.epam.bank.dtos.BankAccountDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.User;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ class BankAccountMapperTest {
     private final BankAccountMapper mapper = new BankAccountMapperImpl();
 
     @Test
-    void shouldMapEntityToDTO() {
+    void shouldMapEntityToDto() {
         UUID userId = UUID.randomUUID();
         User user = new User();
         user.setId(userId);
@@ -29,7 +29,7 @@ class BankAccountMapperTest {
         account.setOutgoingTransactions(Collections.emptyList());
         account.setIncomingTransactions(Collections.emptyList());
 
-        BankAccountDTO dto = mapper.toDTO(account);
+        BankAccountDto dto = mapper.toDto(account);
 
         assertThat(dto).isNotNull();
         assertThat(dto.moneyAmount()).isEqualTo(account.getMoneyAmount());
@@ -42,11 +42,11 @@ class BankAccountMapperTest {
     }
 
     @Test
-    void shouldMapDTOToEntity() {
+    void shouldMapDtoToEntity() {
         Long accountNumber = 2002L;
         UUID userId = UUID.randomUUID();
 
-        BankAccountDTO dto = new BankAccountDTO(
+        BankAccountDto dto = new BankAccountDto(
                 accountNumber,
                 new BigDecimal("1500.50"),
                 userId,

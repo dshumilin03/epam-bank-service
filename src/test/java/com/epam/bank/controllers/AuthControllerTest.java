@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthControllerTest {
+class AuthControllerTest {
 
     @Mock
     private AuthenticationManager authenticationManager;
@@ -57,7 +57,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    void authenticate_ShouldReturnToken_WhenCredentialsAreValid() throws Exception {
+    void login_ShouldReturnToken_WhenCredentialsAreValid() throws Exception {
         AuthenticationRequest request = new AuthenticationRequest("test@example.com", "password");
         UserDetails userDetails = mockUserDetails();
         String expectedToken = "mocked-jwt-token";

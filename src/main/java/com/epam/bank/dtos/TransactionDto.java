@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class TransactionDTO {
+public class TransactionDto {
     @NotNull
     private UUID id;
     @NotNull

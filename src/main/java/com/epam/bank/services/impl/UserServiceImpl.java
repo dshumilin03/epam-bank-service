@@ -1,8 +1,8 @@
 package com.epam.bank.services.impl;
 
 import com.epam.bank.dtos.RegisterRequest;
-import com.epam.bank.dtos.UserCredentialsDTO;
-import com.epam.bank.dtos.UserDTO;
+import com.epam.bank.dtos.UserCredentialsDto;
+import com.epam.bank.dtos.UserDto;
 import com.epam.bank.entities.Role;
 import com.epam.bank.entities.User;
 import com.epam.bank.exceptions.ExistsException;
@@ -10,11 +10,11 @@ import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.exceptions.UserExistsException;
 import com.epam.bank.mappers.UserMapper;
 import com.epam.bank.repositories.UserRepository;
-import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,64 +27,69 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final EncryptionService encryptionService;
+    private static final String NOT_FOUND_USER_BY_ID = "User not found by Id";
 
-    public UserDTO register(RegisterRequest registerUserDTO) {
-        if (userRepository.findByEmail(registerUserDTO.email()).isPresent() ||
-                userRepository.findByPassportId(encryptionService.encrypt(registerUserDTO.passportId())).isPresent()) {
+    @Transactional
+    public UserDto register(RegisterRequest registerUserDto) {
+        if (userRepository.findByEmail(registerUserDto.email()).isPresent() ||
+                userRepository.findByPassportId(passwordEncoder.encode(registerUserDto.passportId())).isPresent()) {
             throw new UserExistsException("User with this data already exists");
         }
-        User newUser = userMapper.toEntity(registerUserDTO);
+        User newUser = userMapper.toEntity(registerUserDto);
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
-        newUser.setPassportId(encryptionService.encrypt(newUser.getPassportId()));
+        newUser.setPassportId(passwordEncoder.encode(newUser.getPassportId()));
         newUser.setIsDisabled(false);
+        // todo add Role to registerUserDto
         newUser.setRole(Role.USER);
-        return userMapper.toDTO(userRepository.save(newUser));
+        return userMapper.toDto(userRepository.save(newUser));
     }
 
-    public UserDTO changeCredentials(UUID id, UserCredentialsDTO userCredentialsDTO) {
-        User old = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found by Id"));
+    @Transactional
+    public UserDto changeCredentials(UUID id, UserCredentialsDto userCredentialsDto) {
+        User entity = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER_BY_ID));
 
-        Boolean existsByEmail = userRepository.existsByEmail(userCredentialsDTO.email());
-        Boolean notSameEmail = !userCredentialsDTO.email().equals(old.getEmail());
+        Boolean existsByEmail = userRepository.existsByEmail(userCredentialsDto.email());
+        Boolean notSameEmail = !userCredentialsDto.email().equals(entity.getEmail());
         if (existsByEmail && notSameEmail) {
             throw new ExistsException("This email is attached to other User");
         }
-        old.setPassword(passwordEncoder.encode(userCredentialsDTO.password()));
-        old.setRole(userCredentialsDTO.role());
-        old.setEmail(userCredentialsDTO.email());
-        return userMapper.toDTO(userRepository.save(old));
+        entity.setPassword(passwordEncoder.encode(userCredentialsDto.password()));
+        entity.setRole(userCredentialsDto.role());
+        entity.setEmail(userCredentialsDto.email());
+        return userMapper.toDto(entity);
     }
 
-    public UserDTO getById(UUID uuid) {
-        return userMapper.toDTO(userRepository.findById(uuid)
+    @Transactional(readOnly = true)
+    public UserDto getById(UUID uuid) {
+        return userMapper.toDto(userRepository.findById(uuid)
                 .orElseThrow(() -> new NotFoundException("User not found by Id")));
     }
 
-    public UserDTO setStatus(UUID userId, Boolean disabled) {
+    @Transactional
+    public UserDto setStatus(UUID userId, Boolean disabled) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User not found by Id"));
 
         user.setIsDisabled(disabled);
 
-        return userMapper.toDTO(userRepository.save(user));
+        return userMapper.toDto(user);
     }
 
     @Override
-    public List<UserDTO> getByFullName(String fullName) {
-        List<UserDTO> userList = new ArrayList<>();
+    @Transactional(readOnly = true)
+    public List<UserDto> getByFullName(String fullName) {
+        List<UserDto> userList = new ArrayList<>();
 
-        userRepository.findByFullName((fullName)).forEach(user -> {
-            userList.add(userMapper.toDTO(user));
-        });
+        userRepository.findByFullName((fullName)).forEach(user -> userList.add(userMapper.toDto(user)));
 
         return userList;
     }
 
     @Override
-    public UserDTO getByEmail(String email) {
-        return userMapper.toDTO(userRepository.findByEmail((email))
+    @Transactional(readOnly = true)
+    public UserDto getByEmail(String email) {
+        return userMapper.toDto(userRepository.findByEmail((email))
                 .orElseThrow(() -> new NotFoundException("User not found by email")));
     }
 }

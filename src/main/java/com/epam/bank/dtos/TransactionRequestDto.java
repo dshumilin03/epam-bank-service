@@ -8,7 +8,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 
-public record TransactionRequestDTO(
+public record TransactionRequestDto(
         @NotNull @PositiveOrZero BigDecimal moneyAmount,
         @NotBlank String description,
         @NotBlank TransactionType transactionType,

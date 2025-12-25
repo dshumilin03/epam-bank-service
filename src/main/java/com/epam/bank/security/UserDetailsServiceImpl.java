@@ -5,7 +5,6 @@ import com.epam.bank.exceptions.BankServiceRuntimeException;
 import com.epam.bank.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +18,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
-
     private final UserRepository userRepository;
 
     @Override
@@ -35,7 +33,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
-                user.getPassword(),
+                null,
                 !user.getIsDisabled(),
                 true,
                 true,

@@ -2,16 +2,14 @@ package com.epam.bank.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -25,6 +23,15 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public List<String> extractAuthorities(String token) {
+        Claims claims = extractAllClaims(token);
+        List<?> rolesRaw = claims.get("roles", List.class);
+        if (rolesRaw == null) return List.of();
+        return rolesRaw.stream()
+                .map(Object::toString)
+                .toList();
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -45,40 +52,30 @@ public class JwtService {
             UserDetails userDetails,
             long expiration
     ) {
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
         return Jwts
                 .builder()
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
+                .claim("roles", roles)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey())
+                .signWith(getSigningKey(secretKey), Jwts.SIG.HS256)
                 .compact();
-    }
-
-    public Boolean isTokenValid(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-    }
-
-    private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
     }
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSignInKey())
+                .verifyWith(getSigningKey(secretKey))
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
 
-
-    private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+    private SecretKey getSigningKey(String secretKey) {
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

@@ -8,12 +8,12 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-public record BankAccountDTO(
+public record BankAccountDto(
         @NotNull @PositiveOrZero Long bankAccountNumber,
         @NotNull @PositiveOrZero BigDecimal moneyAmount,
         @NotEmpty UUID userId,
-        @NotEmpty List<CardDTO> cards,
-        @NotNull List<TransactionDTO> outgoingTransactions,
-        @NotNull List<TransactionDTO> incomingTransactions
+        @NotEmpty List<CardDto> cards,
+        @NotNull List<TransactionDto> outgoingTransactions,
+        @NotNull List<TransactionDto> incomingTransactions
 ) {
 }

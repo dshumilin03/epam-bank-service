@@ -6,7 +6,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 
 import java.math.BigDecimal;
 
-public record LoanRequestDTO(
+public record LoanRequestDto(
         @NotNull @PositiveOrZero BigDecimal moneyLeft,
         @NotNull Double percent,
         @NotNull ChargeStrategyType chargeStrategyType,

@@ -139,7 +139,7 @@ class ChargeServiceImplTest {
             assertThat(savedTransaction.getMoneyAmount()).isEqualTo(calculatedCharge);
             assertThat(savedTransaction.getTransactionType()).isEqualTo(TransactionType.CHARGE);
 
-            verify(transactionMapper).toDTO(any(Transaction.class));
+            verify(transactionMapper).toDto(any(Transaction.class));
         }
 
         @Test
@@ -147,9 +147,7 @@ class ChargeServiceImplTest {
         void shouldThrowExceptionWhenStrategyNotFound() {
             when(chargeable.getChargeStrategyType()).thenReturn(null);
 
-            org.junit.jupiter.api.Assertions.assertThrows(NullPointerException.class, () -> {
-                chargeService.applyCharge(chargeable);
-            });
+            org.junit.jupiter.api.Assertions.assertThrows(NullPointerException.class, () -> chargeService.applyCharge(chargeable));
 
             verify(transactionRepository, never()).save(any());
         }

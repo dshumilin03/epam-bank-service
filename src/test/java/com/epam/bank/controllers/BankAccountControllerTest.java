@@ -1,7 +1,7 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.TransactionDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.services.BankAccountService;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,12 +19,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-public class BankAccountControllerTest {
+class BankAccountControllerTest {
 
     @Mock
     private BankAccountService bankAccountService;
@@ -34,12 +35,12 @@ public class BankAccountControllerTest {
 
     private MockMvc mockMvc;
 
-    private final UUID TEST_USER_ID = UUID.randomUUID();
-    private final Long TEST_BANK_NUMBER = 123456789L;
-    private final BigDecimal TEST_AMOUNT = BigDecimal.valueOf(100.00);
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
+    private static final Long TEST_BANK_NUMBER = 123456789L;
+    private static final BigDecimal TEST_AMOUNT = BigDecimal.valueOf(100.00);
 
-    private BankAccountDTO createMockBankAccountDTO() {
-        return new BankAccountDTO(
+    private BankAccountDto createMockBankAccountDto() {
+        return new BankAccountDto(
                 TEST_BANK_NUMBER,
                 BigDecimal.valueOf(500.00),
                 TEST_USER_ID,
@@ -49,16 +50,16 @@ public class BankAccountControllerTest {
         );
     }
 
-    private TransactionDTO createMockTransactionDTO() {
-        TransactionDTO dto = new TransactionDTO();
+    private TransactionDto createMockTransactionDto() {
+        TransactionDto dto = new TransactionDto();
         dto.setId(UUID.randomUUID());
         dto.setCreatedAt(LocalDateTime.now());
         dto.setMoneyAmount(TEST_AMOUNT);
         dto.setDescription("Test transaction");
         dto.setStatus(TransactionStatus.PENDING);
 
-        BankAccountDTO mockSource = new BankAccountDTO(111L, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
-        BankAccountDTO mockTarget = new BankAccountDTO(222L, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
+        BankAccountDto mockSource = new BankAccountDto(111L, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
+        BankAccountDto mockTarget = new BankAccountDto(222L, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
         dto.setSourceBankAccountNumber(mockSource.bankAccountNumber());
         dto.setTargetBankAccountNumber(mockTarget.bankAccountNumber());
         return dto;
@@ -73,8 +74,8 @@ public class BankAccountControllerTest {
 
     @Test
     void createBankAccount_ShouldReturnCreatedAccount_AndStatus200() throws Exception {
-        BankAccountDTO mockDTO = createMockBankAccountDTO();
-        when(bankAccountService.create(TEST_USER_ID)).thenReturn(mockDTO);
+        BankAccountDto mockDto = createMockBankAccountDto();
+        when(bankAccountService.create(TEST_USER_ID)).thenReturn(mockDto);
 
         mockMvc.perform(post("/api/bank-accounts/users/{userId}", TEST_USER_ID)
                         .contentType(MediaType.APPLICATION_JSON))
@@ -86,8 +87,8 @@ public class BankAccountControllerTest {
 
     @Test
     void getById_ShouldReturnAccount_AndStatus200() throws Exception {
-        BankAccountDTO mockDTO = createMockBankAccountDTO();
-        when(bankAccountService.getById(TEST_BANK_NUMBER)).thenReturn(mockDTO);
+        BankAccountDto mockDto = createMockBankAccountDto();
+        when(bankAccountService.getById(TEST_BANK_NUMBER)).thenReturn(mockDto);
 
         mockMvc.perform(get("/api/bank-accounts/{id}", TEST_BANK_NUMBER))
                 .andExpect(status().isOk())
@@ -124,7 +125,7 @@ public class BankAccountControllerTest {
 
     @Test
     void getTransactions_OutgoingTrue_ShouldReturnTransactions_AndStatus200() throws Exception {
-        List<TransactionDTO> mockTransactions = List.of(createMockTransactionDTO());
+        List<TransactionDto> mockTransactions = List.of(createMockTransactionDto());
         when(bankAccountService.getTransactions(TEST_BANK_NUMBER, true)).thenReturn(mockTransactions);
 
         mockMvc.perform(get("/api/bank-accounts/transactions/{bankNumber}", TEST_BANK_NUMBER)
@@ -137,7 +138,7 @@ public class BankAccountControllerTest {
 
     @Test
     void getChargesByUserId_ShouldReturnCharges_AndStatus200() throws Exception {
-        List<TransactionDTO> mockCharges = List.of(createMockTransactionDTO());
+        List<TransactionDto> mockCharges = List.of(createMockTransactionDto());
         when(bankAccountService.getChargesByUserId(TEST_USER_ID)).thenReturn(mockCharges);
 
         mockMvc.perform(get("/api/bank-accounts/transactions/charges/users/{userId}", TEST_USER_ID))

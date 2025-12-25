@@ -1,6 +1,6 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.CardDTO;
+import com.epam.bank.dtos.CardDto;
 import com.epam.bank.services.CardService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -18,14 +18,14 @@ public class CardController {
     private final CardService cardService;
 
     @GetMapping
-    public ResponseEntity<CardDTO> getByNumber(@RequestParam(name = "cardNumber") String cardNumber) {
-        CardDTO card = cardService.getByNumber(cardNumber);
+    public ResponseEntity<CardDto> getByNumber(@RequestParam(name = "cardNumber") String cardNumber) {
+        CardDto card = cardService.getByNumber(cardNumber);
         return ResponseEntity.ok().body(card);
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<List<CardDTO>> getByUser(@PathVariable @Valid UUID userId) {
-        List<CardDTO> cards = cardService.getByUserId(userId);
+    public ResponseEntity<List<CardDto>> getByUser(@PathVariable @Valid UUID userId) {
+        List<CardDto> cards = cardService.getByUserId(userId);
         return ResponseEntity.ok().body(cards);
     }
 
@@ -42,14 +42,14 @@ public class CardController {
     }
 
     @PostMapping("/users/{userId}")
-    public ResponseEntity<CardDTO> create(@PathVariable  UUID userId, @RequestParam(name = "card_type") Long bankAccountNumber) {
-        CardDTO card = cardService.create(userId, bankAccountNumber);
+    public ResponseEntity<CardDto> create(@PathVariable  UUID userId, @RequestParam(name = "card_type") Long bankAccountNumber) {
+        CardDto card = cardService.create(userId, bankAccountNumber);
         return ResponseEntity.status(HttpStatus.CREATED).body(card);
     }
 
     @PutMapping("/{cardId}")
-    public ResponseEntity<CardDTO> renew(@PathVariable UUID cardId) {
-        CardDTO card = cardService.renew(cardId);
+    public ResponseEntity<CardDto> renew(@PathVariable UUID cardId) {
+        CardDto card = cardService.renew(cardId);
         return ResponseEntity.status(HttpStatus.OK).body(card);
     }
 }

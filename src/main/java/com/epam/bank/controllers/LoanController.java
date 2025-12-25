@@ -1,8 +1,8 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.LoanDTO;
-import com.epam.bank.dtos.LoanRequestDTO;
-import com.epam.bank.dtos.TransactionDTO;
+import com.epam.bank.dtos.LoanDto;
+import com.epam.bank.dtos.LoanRequestDto;
+import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.services.LoanService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -21,38 +21,38 @@ public class LoanController {
     private final LoanService loanService;
 
     @PostMapping
-    public ResponseEntity<LoanDTO> open(@RequestBody @Valid LoanRequestDTO loanRequestDTO) {
+    public ResponseEntity<LoanDto> open(@RequestBody @Valid LoanRequestDto loanRequestDto) {
 
-        LoanDTO opened = loanService.open(loanRequestDTO);
+        LoanDto opened = loanService.open(loanRequestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(opened);
     }
 
     @GetMapping("/{loanId}")
-    public ResponseEntity<LoanDTO> getById(@PathVariable UUID loanId) {
-        LoanDTO loan = loanService.getById(loanId);
+    public ResponseEntity<LoanDto> getById(@PathVariable UUID loanId) {
+        LoanDto loan = loanService.getById(loanId);
 
         return ResponseEntity.status(HttpStatus.OK).body(loan);
     }
 
     @GetMapping("/users/{userId}")
-    public ResponseEntity<List<LoanDTO>> getUserLoansByUserId(@PathVariable UUID userId) {
-        List<LoanDTO> loans = loanService.getUserLoansByUserId(userId);
+    public ResponseEntity<List<LoanDto>> getUserLoansByUserId(@PathVariable UUID userId) {
+        List<LoanDto> loans = loanService.getUserLoansByUserId(userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(loans);
     }
 
     @DeleteMapping("/{loanId}")
-    public ResponseEntity<TransactionDTO> close(@PathVariable UUID loanId) {
+    public ResponseEntity<TransactionDto> close(@PathVariable UUID loanId) {
         loanService.close(loanId);
 
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @PutMapping("/{loanId}")
-    public ResponseEntity<LoanDTO> update(@PathVariable UUID loanId, @RequestBody @Valid LoanDTO loanDTO) {
+    public ResponseEntity<LoanDto> update(@PathVariable UUID loanId, @RequestBody @Valid LoanDto loanDto) {
 
-        LoanDTO updated = loanService.update(loanId, loanDTO);
+        LoanDto updated = loanService.update(loanId, loanDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(updated);
     }

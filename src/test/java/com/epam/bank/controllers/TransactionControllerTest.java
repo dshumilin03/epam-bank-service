@@ -1,8 +1,8 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.TransactionDTO;
-import com.epam.bank.dtos.TransactionRequestDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.TransactionDto;
+import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.entities.TransactionType;
 import com.epam.bank.services.TransactionService;
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TransactionControllerTest {
+class TransactionControllerTest {
 
     @Mock
     private TransactionService transactionService;
@@ -40,13 +40,13 @@ public class TransactionControllerTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
-    private final UUID TEST_TRANSACTION_ID = UUID.randomUUID();
-    private final BigDecimal TEST_AMOUNT = BigDecimal.valueOf(50.00);
-    private final Long SOURCE_ACC = 1111L;
-    private final Long TARGET_ACC = 2222L;
+    private static final UUID TEST_TRANSACTION_ID = UUID.randomUUID();
+    private static final BigDecimal TEST_AMOUNT = BigDecimal.valueOf(50.00);
+    private static final Long SOURCE_ACC = 1111L;
+    private static final Long TARGET_ACC = 2222L;
 
-    private TransactionDTO createMockTransactionDTO() {
-        TransactionDTO dto = new TransactionDTO();
+    private TransactionDto createMockTransactionDto() {
+        TransactionDto dto = new TransactionDto();
         dto.setId(TEST_TRANSACTION_ID);
         dto.setCreatedAt(LocalDateTime.now());
         dto.setMoneyAmount(TEST_AMOUNT);
@@ -54,15 +54,15 @@ public class TransactionControllerTest {
         dto.setStatus(TransactionStatus.PENDING);
         dto.setTransactionType(TransactionType.TRANSFER);
 
-        BankAccountDTO mockSource = new BankAccountDTO(SOURCE_ACC, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
-        BankAccountDTO mockTarget = new BankAccountDTO(TARGET_ACC, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
+        BankAccountDto mockSource = new BankAccountDto(SOURCE_ACC, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
+        BankAccountDto mockTarget = new BankAccountDto(TARGET_ACC, BigDecimal.ZERO, UUID.randomUUID(), List.of(), List.of(), List.of());
         dto.setSourceBankAccountNumber(mockSource.bankAccountNumber());
         dto.setTargetBankAccountNumber(mockTarget.bankAccountNumber());
         return dto;
     }
 
-    private TransactionRequestDTO createMockTransactionRequestDTO() {
-        return new TransactionRequestDTO(
+    private TransactionRequestDto createMockTransactionRequestDto() {
+        return new TransactionRequestDto(
                 TEST_AMOUNT,
                 "Test request",
                 TransactionType.TRANSFER,
@@ -83,23 +83,23 @@ public class TransactionControllerTest {
 
     @Test
     void create_ShouldReturnNewTransaction_AndStatus201() throws Exception {
-        TransactionRequestDTO requestDTO = createMockTransactionRequestDTO();
-        TransactionDTO mockDTO = createMockTransactionDTO();
-        when(transactionService.create(any(TransactionRequestDTO.class))).thenReturn(mockDTO);
+        TransactionRequestDto requestDto = createMockTransactionRequestDto();
+        TransactionDto mockDto = createMockTransactionDto();
+        when(transactionService.create(any(TransactionRequestDto.class))).thenReturn(mockDto);
 
         mockMvc.perform(post("/api/transactions")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(TEST_TRANSACTION_ID.toString()));
 
-        verify(transactionService).create(any(TransactionRequestDTO.class));
+        verify(transactionService).create(any(TransactionRequestDto.class));
     }
 
     @Test
     void getById_ShouldReturnTransaction_AndStatus200() throws Exception {
-        TransactionDTO mockDTO = createMockTransactionDTO();
-        when(transactionService.getById(TEST_TRANSACTION_ID)).thenReturn(mockDTO);
+        TransactionDto mockDto = createMockTransactionDto();
+        when(transactionService.getById(TEST_TRANSACTION_ID)).thenReturn(mockDto);
 
         mockMvc.perform(get("/api/transactions/{transactionId}", TEST_TRANSACTION_ID))
                 .andExpect(status().isOk())
@@ -132,21 +132,21 @@ public class TransactionControllerTest {
 
     @Test
     void update_ShouldReturnUpdatedTransaction_AndStatus200() throws Exception {
-        TransactionDTO updatedDTO = createMockTransactionDTO();
-        updatedDTO.setDescription("Updated description");
+        TransactionDto updatedDto = createMockTransactionDto();
+        updatedDto.setDescription("Updated description");
 
-        TransactionDTO requestBodyDTO = createMockTransactionDTO();
-        requestBodyDTO.setDescription("Updated description");
+        TransactionDto requestBodyDto = createMockTransactionDto();
+        requestBodyDto.setDescription("Updated description");
 
-        when(transactionService.update(any(TransactionDTO.class))).thenReturn(updatedDTO);
+        when(transactionService.update(UUID.randomUUID(), any(TransactionDto.class))).thenReturn(updatedDto);
 
         mockMvc.perform(put("/api/transactions/{transactionId}", TEST_TRANSACTION_ID)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBodyDTO)))
+                        .content(objectMapper.writeValueAsString(requestBodyDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.description").value("Updated description"));
 
-        verify(transactionService).update(any(TransactionDTO.class));
+        verify(transactionService).update(UUID.randomUUID(), any(TransactionDto.class));
     }
 
     @Test

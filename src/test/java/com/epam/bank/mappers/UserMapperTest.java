@@ -1,13 +1,10 @@
 package com.epam.bank.mappers;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.UserDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.UserDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Role;
 import com.epam.bank.entities.User;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -31,12 +28,12 @@ class UserMapperTest {
     private BankAccountMapper bankAccountMapper;
 
     @Test
-    void shouldMapUserEntityToUserDTO() {
+    void shouldMapUserEntityToUserDto() {
 
-        when(bankAccountMapper.toDTO(any(BankAccount.class)))
+        when(bankAccountMapper.toDto(any(BankAccount.class)))
                 .thenAnswer(invocation -> {
                     BankAccount source = invocation.getArgument(0);
-                    return new BankAccountDTO(
+                    return new BankAccountDto(
                             source.getBankAccountNumber(),
                             null,
                             null, null, null, null
@@ -54,7 +51,7 @@ class UserMapperTest {
         bankAccount.setBankAccountNumber(1L);
         user.setBankAccount(bankAccount);
 
-        UserDTO dto = mapper.toDTO(user);
+        UserDto dto = mapper.toDto(user);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getId()).isEqualTo(user.getId());
@@ -66,9 +63,9 @@ class UserMapperTest {
     }
 
     @Test
-    void shouldMapUserDTOToUserEntity() {
-        BankAccountDTO bankAccount = new BankAccountDTO(1L, null, null, null, null, null);
-        UserDTO dto = new UserDTO(
+    void shouldMapUserDtoToUserEntity() {
+        BankAccountDto bankAccount = new BankAccountDto(1L, null, null, null, null, null);
+        UserDto dto = new UserDto(
                 UUID.randomUUID(),
                 "Petr Petrov",
                 "CD654321",
@@ -80,9 +77,9 @@ class UserMapperTest {
 
         );
 
-        when(bankAccountMapper.toEntity(any(BankAccountDTO.class)))
+        when(bankAccountMapper.toEntity(any(BankAccountDto.class)))
                 .thenAnswer(invocationOnMock -> {
-                    BankAccountDTO source = invocationOnMock.getArgument(0);
+                    BankAccountDto source = invocationOnMock.getArgument(0);
                     BankAccount ba = new BankAccount();
                     ba.setBankAccountNumber(source.bankAccountNumber());
                     return ba;

@@ -1,6 +1,6 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.CardDTO;
+import com.epam.bank.dtos.CardDto;
 import com.epam.bank.entities.CardStatus;
 import com.epam.bank.services.CardService;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,14 +33,14 @@ public class CardControllerTest {
 
     private MockMvc mockMvc;
 
-    private final UUID TEST_CARD_ID = UUID.randomUUID();
-    private final UUID TEST_USER_ID = UUID.randomUUID();
-    private final String TEST_CARD_NUMBER = "4111222233334444";
-    private final Long TEST_BANK_ACCOUNT_NUMBER = 987654321L;
-    private final String NEW_PIN = "5555";
+    private static final UUID TEST_CARD_ID = UUID.randomUUID();
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
+    private static final String TEST_CARD_NUMBER = "4111222233334444";
+    private static final Long TEST_BANK_ACCOUNT_NUMBER = 987654321L;
+    private static final String NEW_PIN = "5555";
 
-    private CardDTO createMockCardDTO() {
-        return new CardDTO(
+    private CardDto createMockCardDto() {
+        return new CardDto(
                 TEST_CARD_ID,
                 TEST_CARD_NUMBER,
                 "Test User",
@@ -61,7 +61,7 @@ public class CardControllerTest {
 
     @Test
     void getByNumber_ShouldReturnCard_AndStatus200() throws Exception {
-        CardDTO mockCard = createMockCardDTO();
+        CardDto mockCard = createMockCardDto();
         when(cardService.getByNumber(TEST_CARD_NUMBER)).thenReturn(mockCard);
 
         mockMvc.perform(get("/api/cards")
@@ -74,7 +74,7 @@ public class CardControllerTest {
 
     @Test
     void getByUser_ShouldReturnCardList_AndStatus200() throws Exception {
-        List<CardDTO> mockCards = List.of(createMockCardDTO());
+        List<CardDto> mockCards = List.of(createMockCardDto());
         when(cardService.getByUserId(TEST_USER_ID)).thenReturn(mockCards);
 
         mockMvc.perform(get("/api/cards/users/{userId}", TEST_USER_ID))
@@ -86,7 +86,7 @@ public class CardControllerTest {
 
     @Test
     void create_ShouldReturnNewCard_AndStatus201() throws Exception {
-        CardDTO mockCard = createMockCardDTO();
+        CardDto mockCard = createMockCardDto();
         when(cardService.create(TEST_USER_ID, TEST_BANK_ACCOUNT_NUMBER)).thenReturn(mockCard);
 
         mockMvc.perform(post("/api/cards/users/{userId}", TEST_USER_ID)
@@ -123,7 +123,7 @@ public class CardControllerTest {
 
     @Test
     void renew_ShouldReturnRenewedCard_AndStatus201() throws Exception {
-        CardDTO renewedCard = createMockCardDTO();
+        CardDto renewedCard = createMockCardDto();
         when(cardService.renew(TEST_CARD_ID)).thenReturn(renewedCard);
 
         mockMvc.perform(put("/api/cards/{cardId}", TEST_CARD_ID))

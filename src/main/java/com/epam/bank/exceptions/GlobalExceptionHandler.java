@@ -19,7 +19,7 @@ import java.io.IOException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-
+// todo uncouple from front
     @ExceptionHandler({BankServiceException.class})
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public void handleBankServiceException(BankServiceException ex,
@@ -33,8 +33,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({BankServiceRuntimeException.class})
-    public void handleBankServiceRuntimeException(BankServiceException ex, HttpServletResponse response, HttpServletRequest request) throws IOException {
-        log.warn("Bank Service Runtime Exception exception" + ex);
+    public void handleBankServiceRuntimeException(BankServiceException ex) {
+        log.warn("Bank Service Runtime Exception exception{}", String.valueOf(ex));
     }
 
 

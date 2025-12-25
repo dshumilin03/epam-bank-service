@@ -1,17 +1,17 @@
 package com.epam.bank.services;
 
-import com.epam.bank.dtos.TransactionDTO;
-import com.epam.bank.dtos.TransactionRequestDTO;
+import com.epam.bank.dtos.TransactionDto;
+import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.TransactionStatus;
 
 import java.util.UUID;
 
 public interface TransactionService {
-    TransactionDTO create(TransactionRequestDTO transactionRequestDTO);
+    TransactionDto create(TransactionRequestDto transactionRequestDto);
 
-    TransactionDTO getById(UUID id);
+    TransactionDto getById(UUID id);
 
-    TransactionDTO update(TransactionDTO transactionDTO);
+    TransactionDto update(UUID transactionId, TransactionDto transactionDto);
 
     void delete(UUID id);
 

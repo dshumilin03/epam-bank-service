@@ -1,9 +1,9 @@
 package com.epam.bank.services;
 
-import com.epam.bank.dtos.BankAccountDTO;
+import com.epam.bank.dtos.BankAccountDto;
 import com.epam.bank.dtos.RegisterRequest;
-import com.epam.bank.dtos.UserCredentialsDTO;
-import com.epam.bank.dtos.UserDTO;
+import com.epam.bank.dtos.UserCredentialsDto;
+import com.epam.bank.dtos.UserDto;
 import com.epam.bank.entities.Role;
 import com.epam.bank.entities.User;
 import com.epam.bank.exceptions.ExistsException;
@@ -11,7 +11,6 @@ import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.exceptions.UserExistsException;
 import com.epam.bank.mappers.UserMapper;
 import com.epam.bank.repositories.UserRepository;
-import com.epam.bank.security.EncryptionService;
 import com.epam.bank.services.impl.UserServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,9 +42,6 @@ class UserServiceImplTest {
     private UserMapper userMapper;
 
     @Mock
-    private EncryptionService encryptionService;
-
-    @Mock
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
@@ -68,19 +64,19 @@ class UserServiceImplTest {
             User userEntity = new User();
             User savedUser = new User();
             savedUser.setId(USER_ID);
-            BankAccountDTO bankAccountDTO = new BankAccountDTO(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-            UserDTO expectedDTO = new UserDTO(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, false, Role.USER, bankAccountDTO);
+            BankAccountDto bankAccountDto = new BankAccountDto(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            UserDto expectedDto = new UserDto(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, false, Role.USER, bankAccountDto);
 
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
-            when(encryptionService.encrypt(any())).thenReturn(PASSPORT);
+            when(passwordEncoder.encode(any())).thenReturn(PASSPORT);
             when(userRepository.findByPassportId(PASSPORT)).thenReturn(Optional.empty());
             when(userMapper.toEntity(request)).thenReturn(userEntity);
             when(userRepository.save(userEntity)).thenReturn(savedUser);
-            when(userMapper.toDTO(savedUser)).thenReturn(expectedDTO);
+            when(userMapper.toDto(savedUser)).thenReturn(expectedDto);
 
-            UserDTO result = userService.register(request);
+            UserDto result = userService.register(request);
 
-            assertThat(result).isEqualTo(expectedDTO);
+            assertThat(result).isEqualTo(expectedDto);
             verify(userRepository).save(userEntity);
         }
 
@@ -102,7 +98,7 @@ class UserServiceImplTest {
         @DisplayName("Should throw UserExistsException when passport already exists")
         void shouldThrowExceptionWhenPassportExists() {
             RegisterRequest request = new RegisterRequest(FULL_NAME, EMAIL, PASSWORD, PASSPORT, Role.USER);
-            when(encryptionService.encrypt(any())).thenReturn(PASSPORT);
+            when(passwordEncoder.encode(any())).thenReturn(PASSPORT);
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.empty());
             when(userRepository.findByPassportId(PASSPORT)).thenReturn(Optional.of(new User()));
 
@@ -122,24 +118,24 @@ class UserServiceImplTest {
         @DisplayName("Should successfully change credentials with new unique email")
         void shouldChangeCredentialsSuccessfully() {
             String newEmail = "new@example.com";
-            UserCredentialsDTO credentialsDTO = new UserCredentialsDTO(newEmail, "newPass", Role.MANAGER);
+            UserCredentialsDto credentialsDto = new UserCredentialsDto(newEmail, "newPass", Role.MANAGER);
 
             User existingUser = new User();
             existingUser.setId(USER_ID);
             existingUser.setEmail(EMAIL);
 
             User updatedUser = new User();
-            BankAccountDTO bankAccountDTO = new BankAccountDTO(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-            UserDTO expectedDTO = new UserDTO(USER_ID, FULL_NAME, PASSPORT, newEmail, "newPass", false, Role.MANAGER, bankAccountDTO);
+            BankAccountDto bankAccountDto = new BankAccountDto(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            UserDto expectedDto = new UserDto(USER_ID, FULL_NAME, PASSPORT, newEmail, "newPass", false, Role.MANAGER, bankAccountDto);
 
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(existingUser));
             when(userRepository.existsByEmail(newEmail)).thenReturn(false);
             when(userRepository.save(existingUser)).thenReturn(updatedUser);
-            when(userMapper.toDTO(updatedUser)).thenReturn(expectedDTO);
+            when(userMapper.toDto(updatedUser)).thenReturn(expectedDto);
 
-            UserDTO result = userService.changeCredentials(USER_ID, credentialsDTO);
+            UserDto result = userService.changeCredentials(USER_ID, credentialsDto);
 
-            assertThat(result).isEqualTo(expectedDTO);
+            assertThat(result).isEqualTo(expectedDto);
             assertThat(result.getEmail()).isEqualTo(newEmail);
             assertThat(result.getPassword()).isEqualTo("newPass");
             assertThat(result.getRole()).isEqualTo(Role.MANAGER);
@@ -148,7 +144,7 @@ class UserServiceImplTest {
         @Test
         @DisplayName("Should successfully update when keeping the SAME email (even if existsByEmail returns true)")
         void shouldUpdateWhenEmailIsSameAsOld() {
-            UserCredentialsDTO credentialsDTO = new UserCredentialsDTO(EMAIL, "newPass", Role.USER);
+            UserCredentialsDto credentialsDto = new UserCredentialsDto(EMAIL, "newPass", Role.USER);
 
             User existingUser = new User();
             existingUser.setId(USER_ID);
@@ -157,9 +153,9 @@ class UserServiceImplTest {
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(existingUser));
             when(userRepository.existsByEmail(EMAIL)).thenReturn(true);
             when(userRepository.save(existingUser)).thenReturn(existingUser);
-            when(userMapper.toDTO(any())).thenReturn(mock(UserDTO.class));
+            when(userMapper.toDto(any())).thenReturn(mock(UserDto.class));
 
-            userService.changeCredentials(USER_ID, credentialsDTO);
+            userService.changeCredentials(USER_ID, credentialsDto);
 
             verify(userRepository).save(existingUser);
         }
@@ -167,10 +163,10 @@ class UserServiceImplTest {
         @Test
         @DisplayName("Should throw NotFoundException when user ID not found")
         void shouldThrowNotFoundWhenUserMissing() {
-            UserCredentialsDTO credentialsDTO = new UserCredentialsDTO("email", "pass", Role.USER);
+            UserCredentialsDto credentialsDto = new UserCredentialsDto("email", "pass", Role.USER);
             when(userRepository.findById(USER_ID)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> userService.changeCredentials(USER_ID, credentialsDTO))
+            assertThatThrownBy(() -> userService.changeCredentials(USER_ID, credentialsDto))
                     .isInstanceOf(NotFoundException.class)
                     .hasMessage("User not found by Id");
         }
@@ -179,7 +175,7 @@ class UserServiceImplTest {
         @DisplayName("Should throw ExistsException when new email is taken by another user")
         void shouldThrowExistsWhenEmailTaken() {
             String takenEmail = "taken@example.com";
-            UserCredentialsDTO credentialsDTO = new UserCredentialsDTO(takenEmail, "pass", Role.USER);
+            UserCredentialsDto credentialsDto = new UserCredentialsDto(takenEmail, "pass", Role.USER);
 
             User existingUser = new User();
             existingUser.setId(USER_ID);
@@ -188,7 +184,7 @@ class UserServiceImplTest {
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(existingUser));
             when(userRepository.existsByEmail(takenEmail)).thenReturn(true);
 
-            assertThatThrownBy(() -> userService.changeCredentials(USER_ID, credentialsDTO))
+            assertThatThrownBy(() -> userService.changeCredentials(USER_ID, credentialsDto))
                     .isInstanceOf(ExistsException.class)
                     .hasMessage("This email is attached to other User");
         }
@@ -199,18 +195,18 @@ class UserServiceImplTest {
     class GetByIdTests {
 
         @Test
-        @DisplayName("Should return UserDTO when user exists")
+        @DisplayName("Should return UserDto when user exists")
         void shouldReturnUserById() {
             User user = new User();
-            BankAccountDTO bankAccountDTO = new BankAccountDTO(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-            UserDTO expectedDTO = new UserDTO(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, false, Role.USER, bankAccountDTO);
+            BankAccountDto bankAccountDto = new BankAccountDto(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            UserDto expectedDto = new UserDto(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, false, Role.USER, bankAccountDto);
 
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
-            when(userMapper.toDTO(user)).thenReturn(expectedDTO);
+            when(userMapper.toDto(user)).thenReturn(expectedDto);
 
-            UserDTO result = userService.getById(USER_ID);
+            UserDto result = userService.getById(USER_ID);
 
-            assertThat(result).isEqualTo(expectedDTO);
+            assertThat(result).isEqualTo(expectedDto);
         }
 
         @Test
@@ -235,17 +231,17 @@ class UserServiceImplTest {
             user.setId(USER_ID);
             user.setIsDisabled(false);
 
-            BankAccountDTO bankAccountDTO = new BankAccountDTO(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-            UserDTO expectedDTO = new UserDTO(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, true, Role.USER, bankAccountDTO);
+            BankAccountDto bankAccountDto = new BankAccountDto(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            UserDto expectedDto = new UserDto(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, true, Role.USER, bankAccountDto);
 
             when(userRepository.findById(USER_ID)).thenReturn(Optional.of(user));
             when(userRepository.save(user)).thenReturn(user);
-            when(userMapper.toDTO(user)).thenReturn(expectedDTO);
+            when(userMapper.toDto(user)).thenReturn(expectedDto);
 
-            UserDTO result = userService.setStatus(USER_ID, true);
+            UserDto result = userService.setStatus(USER_ID, true);
 
             assertThat(user.getIsDisabled()).isTrue();
-            assertThat(result).isEqualTo(expectedDTO);
+            assertThat(result).isEqualTo(expectedDto);
             verify(userRepository).save(user);
         }
 
@@ -265,20 +261,20 @@ class UserServiceImplTest {
     class GetByFullNameTests {
 
         @Test
-        @DisplayName("Should return UserDTO by full name")
+        @DisplayName("Should return UserDto by full name")
         void shouldReturnUserByName() {
             User user = new User();
-            BankAccountDTO bankAccountDTO = new BankAccountDTO(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-            UserDTO expectedDTO = new UserDTO(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, false, Role.USER, bankAccountDTO);
+            BankAccountDto bankAccountDto = new BankAccountDto(1L, BigDecimal.valueOf(123), USER_ID, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+            UserDto expectedDto = new UserDto(USER_ID, FULL_NAME, PASSPORT, EMAIL, PASSWORD, false, Role.USER, bankAccountDto);
 
             List<User> expectedList = new ArrayList<>();
             expectedList.add(user);
             when(userRepository.findByFullName(FULL_NAME)).thenReturn(expectedList);
-            when(userMapper.toDTO(user)).thenReturn(expectedDTO);
+            when(userMapper.toDto(user)).thenReturn(expectedDto);
 
-            List<UserDTO> result = userService.getByFullName(FULL_NAME);
+            List<UserDto> result = userService.getByFullName(FULL_NAME);
 
-            assertThat(result.getFirst()).isEqualTo(expectedDTO);
+            assertThat(result.getFirst()).isEqualTo(expectedDto);
         }
     }
 }

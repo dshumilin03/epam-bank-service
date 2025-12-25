@@ -2,13 +2,13 @@ spring:
   application:
     name: epam-bank-service
   mvc:
-    hiddenmethod:
+    hidden method:
       filter:
         enabled: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: appuser
-    password: secret123
+    username: {POSTGRES_USER}
+    password: {POSTGRES_PASSWORD}
     url: jdbc:postgresql://localhost:5432/bankdb
     hikari:
       connection-timeout: 1000
@@ -26,9 +26,6 @@ server:
 jwt:
   secret-key: ${JWT_SECRET_KEY:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
   expiration: 86400000 # 24 hours
-
-encryption:
-  secret-key: ${ENCRYPTION_KEY:MySecretKey12345}
 
 logging:
   level:

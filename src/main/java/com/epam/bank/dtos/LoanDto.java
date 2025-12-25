@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class LoanDTO {
+public class LoanDto {
     @NotNull
     private java.util.UUID id;
     @NotNull
@@ -23,7 +23,7 @@ public class LoanDTO {
     @NotNull
     private ChargeStrategyType chargeStrategyType;
     @NotNull
-    private BankAccountDTO bankAccount;
+    private BankAccountDto bankAccount;
     @NotNull
     private LocalDateTime createdAt;
     @NotNull

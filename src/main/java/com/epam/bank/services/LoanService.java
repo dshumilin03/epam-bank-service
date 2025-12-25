@@ -1,21 +1,22 @@
 package com.epam.bank.services;
 
-import com.epam.bank.dtos.LoanDTO;
-import com.epam.bank.dtos.LoanRequestDTO;
+import com.epam.bank.dtos.LoanDto;
+import com.epam.bank.dtos.LoanRequestDto;
+import com.epam.bank.entities.Loan;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface LoanService {
-    List<LoanDTO> getUserLoansByUserId(UUID id);
+    List<LoanDto> getUserLoansByUserId(UUID id);
 
     void close(UUID id);
 
-    LoanDTO open(LoanRequestDTO loanRequestDTO);
+    LoanDto open(LoanRequestDto loanRequestDto);
 
-    LoanDTO update(UUID transactionId, LoanDTO loanDTO);
+    LoanDto update(UUID transactionId, LoanDto loanDto);
 
-    LoanDTO getById(UUID loanId);
+    LoanDto getById(UUID loanId);
 
-    Chargeable getEntityById(UUID loanId);
+    Loan getEntityById(UUID loanId);
 }

@@ -1,6 +1,6 @@
 package com.epam.bank.mappers;
 
-import com.epam.bank.dtos.CardDTO;
+import com.epam.bank.dtos.CardDto;
 import com.epam.bank.entities.Card;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -9,10 +9,10 @@ import org.mapstruct.Mapping;
 public interface CardMapper {
 
     @Mapping(source = "bankAccount.bankAccountNumber", target = "bankAccountNumber")
-    CardDTO toDTO(Card card);
+    CardDto toDto(Card card);
 
     // bank account entity in service
     @Mapping(target = "bankAccount", ignore = true)
-    Card toEntity(CardDTO card);
+    Card toEntity(CardDto card);
 
 }

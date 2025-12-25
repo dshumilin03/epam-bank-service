@@ -1,12 +1,11 @@
 package com.epam.bank.mappers;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.LoanDTO;
-import com.epam.bank.dtos.LoanRequestDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.LoanDto;
+import com.epam.bank.dtos.LoanRequestDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Loan;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mapstruct.factory.Mappers;
@@ -32,7 +31,7 @@ class LoanMapperTest {
     private BankAccountMapper bankAccountMapper;
 
     @Test
-    void shouldMapEntityToDTO() {
+    void shouldMapEntityToDto() {
         BankAccount bankAccount = new BankAccount();
         bankAccount.setBankAccountNumber(555L);
 
@@ -47,10 +46,10 @@ class LoanMapperTest {
         loan.setChargeStrategyType(ChargeStrategyType.MONTHLY);
         loan.setBankAccount(bankAccount);
 
-        when(bankAccountMapper.toDTO(any(BankAccount.class)))
+        when(bankAccountMapper.toDto(any(BankAccount.class)))
                 .thenAnswer(invocation -> {
                     BankAccount source = invocation.getArgument(0);
-                    return new BankAccountDTO(
+                    return new BankAccountDto(
                             source.getBankAccountNumber(),
                             source.getMoneyAmount(),
                             null, null, null, null
@@ -58,7 +57,7 @@ class LoanMapperTest {
                 });
 
 
-        LoanDTO dto = mapper.toDTO(loan);
+        LoanDto dto = mapper.toDto(loan);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getId()).isEqualTo(loan.getId());
@@ -76,12 +75,12 @@ class LoanMapperTest {
     }
 
     @Test
-    void shouldMapDTOToEntity() {
-        BankAccountDTO accountDTO = new BankAccountDTO(
+    void shouldMapDtoToEntity() {
+        BankAccountDto accountDto = new BankAccountDto(
                 777L, BigDecimal.ZERO, UUID.randomUUID(), java.util.Collections.emptyList(), java.util.Collections.emptyList(), java.util.Collections.emptyList()
         );
 
-        LoanDTO dto = new LoanDTO();
+        LoanDto dto = new LoanDto();
         dto.setId(UUID.randomUUID());
         dto.setMoneyLeft(new BigDecimal("5000.00"));
         dto.setPercent(5.0);
@@ -90,7 +89,7 @@ class LoanMapperTest {
         dto.setCreatedAt(LocalDateTime.now());
         dto.setNextChargeAt(LocalDateTime.now().plusDays(1));
         dto.setLastChargeAt(LocalDateTime.now().minusDays(1));
-        dto.setBankAccount(accountDTO);
+        dto.setBankAccount(accountDto);
 
         Loan entity = mapper.toEntity(dto);
 
@@ -105,8 +104,8 @@ class LoanMapperTest {
     }
 
     @Test
-    void shouldMapRequestToDTO() {
-        LoanRequestDTO request = new LoanRequestDTO(
+    void shouldMapRequestToDto() {
+        LoanRequestDto request = new LoanRequestDto(
                 new BigDecimal("20000.00"),
                 15.0,
                 ChargeStrategyType.MONTHLY,
@@ -114,7 +113,7 @@ class LoanMapperTest {
                 36L
         );
 
-        LoanDTO dto = mapper.toDTO(request);
+        LoanDto dto = mapper.toDto(request);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getMoneyLeft()).isEqualTo(request.moneyLeft());

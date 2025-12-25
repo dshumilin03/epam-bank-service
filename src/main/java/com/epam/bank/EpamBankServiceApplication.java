@@ -11,6 +11,3 @@ public class EpamBankServiceApplication {
 	}
 
 }
-// TODO validation, also in front
-// todo custom exceptions, handling
-// todo handle if some services or db is not available

@@ -1,6 +1,6 @@
 package com.epam.bank.mappers;
 
-import com.epam.bank.dtos.CardDTO;
+import com.epam.bank.dtos.CardDto;
 import com.epam.bank.entities.Card;
 import com.epam.bank.entities.CardStatus;
 import org.junit.jupiter.api.Test;
@@ -15,7 +15,7 @@ class CardMapperTest {
     private final CardMapper mapper = new CardMapperImpl();
 
     @Test
-    void shouldMapEntityToDTO() {
+    void shouldMapEntityToDto() {
         Card card = new Card();
         card.setId(UUID.randomUUID());
         card.setCardNumber("1234-5678");
@@ -25,7 +25,7 @@ class CardMapperTest {
         card.setPinCode("0000");
         card.setOwnerName("John Doe");
 
-        CardDTO dto = mapper.toDTO(card);
+        CardDto dto = mapper.toDto(card);
 
         assertThat(dto).isNotNull();
         assertThat(dto.getId()).isEqualTo(card.getId());
@@ -35,27 +35,27 @@ class CardMapperTest {
     }
 
     @Test
-    void shouldMapDTOToEntity() {
+    void shouldMapDtoToEntity() {
         UUID id = UUID.randomUUID();
-        CardDTO cardDTO = new CardDTO();
-        cardDTO.setId(id);
-        cardDTO.setCardNumber("4444-5555-6666-7777");
-        cardDTO.setOwnerName("Sidor Sidorov");
-        cardDTO.setExpiresAt(LocalDate.of(2030, 1, 1));
-        cardDTO.setCvv("777");
-        cardDTO.setPinCode("4321");
-        cardDTO.setStatus(CardStatus.ACTIVE);
-        Card entity = mapper.toEntity(cardDTO);
+        CardDto cardDto = new CardDto();
+        cardDto.setId(id);
+        cardDto.setCardNumber("4444-5555-6666-7777");
+        cardDto.setOwnerName("Sidor Sidorov");
+        cardDto.setExpiresAt(LocalDate.of(2030, 1, 1));
+        cardDto.setCvv("777");
+        cardDto.setPinCode("4321");
+        cardDto.setStatus(CardStatus.ACTIVE);
+        Card entity = mapper.toEntity(cardDto);
 
         assertThat(entity).isNotNull();
-        assertThat(entity.getId()).isEqualTo(cardDTO.getId());
-        assertThat(entity.getCardNumber()).isEqualTo(cardDTO.getCardNumber());
-        assertThat(entity.getExpiresAt()).isEqualTo(cardDTO.getExpiresAt());
-        assertThat(entity.getCvv()).isEqualTo(cardDTO.getCvv());
-        assertThat(entity.getPinCode()).isEqualTo(cardDTO.getPinCode());
-        assertThat(entity.getStatus()).isEqualTo(cardDTO.getStatus());
+        assertThat(entity.getId()).isEqualTo(cardDto.getId());
+        assertThat(entity.getCardNumber()).isEqualTo(cardDto.getCardNumber());
+        assertThat(entity.getExpiresAt()).isEqualTo(cardDto.getExpiresAt());
+        assertThat(entity.getCvv()).isEqualTo(cardDto.getCvv());
+        assertThat(entity.getPinCode()).isEqualTo(cardDto.getPinCode());
+        assertThat(entity.getStatus()).isEqualTo(cardDto.getStatus());
 
-        assertThat(entity.getOwnerName()).isEqualTo(cardDTO.getOwnerName());
+        assertThat(entity.getOwnerName()).isEqualTo(cardDto.getOwnerName());
 
         assertThat(entity.getBankAccount()).isNull();
     }

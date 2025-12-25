@@ -1,8 +1,8 @@
 package com.epam.bank.controllers;
 
-import com.epam.bank.dtos.BankAccountDTO;
-import com.epam.bank.dtos.LoanDTO;
-import com.epam.bank.dtos.LoanRequestDTO;
+import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.dtos.LoanDto;
+import com.epam.bank.dtos.LoanRequestDto;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.services.LoanService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-public class LoanControllerTest {
+class LoanControllerTest {
 
     @Mock
     private LoanService loanService;
@@ -40,13 +40,13 @@ public class LoanControllerTest {
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
 
-    private final UUID TEST_LOAN_ID = UUID.randomUUID();
-    private final UUID TEST_USER_ID = UUID.randomUUID();
-    private final Long TEST_BANK_NUMBER = 123456789L;
-    private final BigDecimal LOAN_AMOUNT = BigDecimal.valueOf(10000.00);
+    private static final UUID TEST_LOAN_ID = UUID.randomUUID();
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
+    private static final Long TEST_BANK_NUMBER = 123456789L;
+    private static final BigDecimal LOAN_AMOUNT = BigDecimal.valueOf(10000.00);
 
-    private BankAccountDTO createMockBankAccountDTO() {
-        return new BankAccountDTO(
+    private BankAccountDto createMockBankAccountDto() {
+        return new BankAccountDto(
                 TEST_BANK_NUMBER,
                 BigDecimal.valueOf(500.00),
                 TEST_USER_ID,
@@ -56,13 +56,13 @@ public class LoanControllerTest {
         );
     }
 
-    private LoanDTO createMockLoanDTO() {
-        LoanDTO dto = new LoanDTO();
+    private LoanDto createMockLoanDto() {
+        LoanDto dto = new LoanDto();
         dto.setId(TEST_LOAN_ID);
         dto.setMoneyLeft(LOAN_AMOUNT);
         dto.setPercent(5.0);
         dto.setChargeStrategyType(ChargeStrategyType.MONTHLY);
-        dto.setBankAccount(createMockBankAccountDTO());
+        dto.setBankAccount(createMockBankAccountDto());
         dto.setCreatedAt(LocalDateTime.now());
         dto.setNextChargeAt(LocalDateTime.now().plusMonths(1));
         dto.setLastChargeAt(LocalDateTime.now());
@@ -70,8 +70,8 @@ public class LoanControllerTest {
         return dto;
     }
 
-    private LoanRequestDTO createMockLoanRequestDTO() {
-        return new LoanRequestDTO(
+    private LoanRequestDto createMockLoanRequestDto() {
+        return new LoanRequestDto(
                 LOAN_AMOUNT,
                 5.0,
                 ChargeStrategyType.MONTHLY,
@@ -92,22 +92,22 @@ public class LoanControllerTest {
 
     @Test
     void open_ShouldReturnNewLoan_AndStatus201() throws Exception {
-        LoanRequestDTO requestDTO = createMockLoanRequestDTO();
-        LoanDTO mockLoan = createMockLoanDTO();
-        when(loanService.open(any(LoanRequestDTO.class))).thenReturn(mockLoan);
+        LoanRequestDto requestDto = createMockLoanRequestDto();
+        LoanDto mockLoan = createMockLoanDto();
+        when(loanService.open(any(LoanRequestDto.class))).thenReturn(mockLoan);
 
         mockMvc.perform(post("/api/loans")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDTO)))
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(TEST_LOAN_ID.toString()));
 
-        verify(loanService).open(any(LoanRequestDTO.class));
+        verify(loanService).open(any(LoanRequestDto.class));
     }
 
     @Test
     void getById_ShouldReturnLoan_AndStatus200() throws Exception {
-        LoanDTO mockLoan = createMockLoanDTO();
+        LoanDto mockLoan = createMockLoanDto();
         when(loanService.getById(TEST_LOAN_ID)).thenReturn(mockLoan);
 
         mockMvc.perform(get("/api/loans/{loanId}", TEST_LOAN_ID))
@@ -119,7 +119,7 @@ public class LoanControllerTest {
 
     @Test
     void getUserLoansByUserId_ShouldReturnLoanList_AndStatus200() throws Exception {
-        List<LoanDTO> mockLoans = List.of(createMockLoanDTO());
+        List<LoanDto> mockLoans = List.of(createMockLoanDto());
         when(loanService.getUserLoansByUserId(TEST_USER_ID)).thenReturn(mockLoans);
 
         mockMvc.perform(get("/api/loans/users/{userId}", TEST_USER_ID))
@@ -141,20 +141,20 @@ public class LoanControllerTest {
 
     @Test
     void update_ShouldReturnUpdatedLoan_AndStatus200() throws Exception {
-        LoanDTO updatedDTO = createMockLoanDTO();
-        updatedDTO.setPercent(7.5);
+        LoanDto updatedDto = createMockLoanDto();
+        updatedDto.setPercent(7.5);
 
-        LoanDTO requestBodyDTO = createMockLoanDTO();
-        requestBodyDTO.setPercent(7.5);
+        LoanDto requestBodyDto = createMockLoanDto();
+        requestBodyDto.setPercent(7.5);
 
-        when(loanService.update(eq(TEST_LOAN_ID), any(LoanDTO.class))).thenReturn(updatedDTO);
+        when(loanService.update(eq(TEST_LOAN_ID), any(LoanDto.class))).thenReturn(updatedDto);
 
         mockMvc.perform(put("/api/loans/{loanId}", TEST_LOAN_ID)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestBodyDTO)))
+                        .content(objectMapper.writeValueAsString(requestBodyDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.percent").value(7.5));
 
-        verify(loanService).update(eq(TEST_LOAN_ID), any(LoanDTO.class));
+        verify(loanService).update(eq(TEST_LOAN_ID), any(LoanDto.class));
     }
 }

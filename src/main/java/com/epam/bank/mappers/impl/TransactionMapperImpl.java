@@ -1,30 +1,24 @@
 package com.epam.bank.mappers.impl;
 
-import com.epam.bank.dtos.TransactionDTO;
-import com.epam.bank.dtos.TransactionRequestDTO;
+import com.epam.bank.dtos.TransactionDto;
+import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.Transaction;
-import com.epam.bank.mappers.BankAccountMapper;
 import com.epam.bank.mappers.TransactionMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 
 @Component
 public class TransactionMapperImpl implements TransactionMapper {
 
-    @Autowired
-    @Lazy
-    private BankAccountMapper bankAccountMapper;
-
     @Override
-    public Transaction toEntity(TransactionDTO dto) {
+    public Transaction toEntity(TransactionDto dto) {
         if (dto == null) {
             return null;
         }
 
         Transaction.TransactionBuilder transaction = Transaction.builder();
 
+        // source and target are ignored
         transaction.id(dto.getId());
         transaction.createdAt(dto.getCreatedAt());
         transaction.moneyAmount(dto.getMoneyAmount());
@@ -36,7 +30,7 @@ public class TransactionMapperImpl implements TransactionMapper {
     }
 
     @Override
-    public Transaction toEntity(TransactionRequestDTO dto) {
+    public Transaction toEntity(TransactionRequestDto dto) {
         if (dto == null) {
             return null;
         }
@@ -51,40 +45,40 @@ public class TransactionMapperImpl implements TransactionMapper {
     }
 
     @Override
-    public TransactionDTO toDTO(Transaction transaction) {
+    public TransactionDto toDto(Transaction transaction) {
         if (transaction == null) {
             return null;
         }
 
-        TransactionDTO transactionDTO = new TransactionDTO();
+        TransactionDto transactionDto = new TransactionDto();
 
-        transactionDTO.setId(transaction.getId());
-        transactionDTO.setCreatedAt(transaction.getCreatedAt());
-        transactionDTO.setMoneyAmount(transaction.getMoneyAmount());
-        transactionDTO.setDescription(transaction.getDescription());
-        transactionDTO.setStatus(transaction.getStatus());
-        transactionDTO.setTransactionType(transaction.getTransactionType());
-        transactionDTO.setSourceBankAccountNumber(transaction.getSource().getBankAccountNumber());
+        transactionDto.setId(transaction.getId());
+        transactionDto.setCreatedAt(transaction.getCreatedAt());
+        transactionDto.setMoneyAmount(transaction.getMoneyAmount());
+        transactionDto.setDescription(transaction.getDescription());
+        transactionDto.setStatus(transaction.getStatus());
+        transactionDto.setTransactionType(transaction.getTransactionType());
+        transactionDto.setSourceBankAccountNumber(transaction.getSource().getBankAccountNumber());
         if (transaction.getTarget() == null && transaction.getDescription().contains("charge")) {
-            transactionDTO.setTargetBankAccountNumber(null);
+            transactionDto.setTargetBankAccountNumber(null);
         } else {
-            transactionDTO.setTargetBankAccountNumber(transaction.getTarget().getBankAccountNumber());
+            transactionDto.setTargetBankAccountNumber(transaction.getTarget().getBankAccountNumber());
         }
-        return transactionDTO;
+        return transactionDto;
     }
 
     @Override
-    public TransactionDTO toDTO(TransactionRequestDTO transactionRequestDTO) {
-        if (transactionRequestDTO == null) {
+    public TransactionDto toDto(TransactionRequestDto transactionRequestDto) {
+        if (transactionRequestDto == null) {
             return null;
         }
 
-        TransactionDTO transactionDTO = new TransactionDTO();
+        TransactionDto transactionDto = new TransactionDto();
 
-        transactionDTO.setMoneyAmount(transactionRequestDTO.moneyAmount());
-        transactionDTO.setDescription(transactionRequestDTO.description());
-        transactionDTO.setTransactionType(transactionRequestDTO.transactionType());
+        transactionDto.setMoneyAmount(transactionRequestDto.moneyAmount());
+        transactionDto.setDescription(transactionRequestDto.description());
+        transactionDto.setTransactionType(transactionRequestDto.transactionType());
 
-        return transactionDTO;
+        return transactionDto;
     }
 }
