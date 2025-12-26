@@ -9,15 +9,13 @@ import com.epam.bank.mappers.CardMapper;
 import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.CardRepository;
 import com.epam.bank.services.CardService;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.dao.DataAccessException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -30,37 +28,35 @@ public class CardServiceImpl implements CardService {
     private final CardMapper cardMapper;
     private final BankAccountRepository bankAccountRepository;
     private final PasswordEncoder passwordEncoder;
-    private static final String NOT_FOUND_BY_NUMBER = "Card not found by card number";
-    private static final String NOT_FOUND_BY_ID = "Card not found by card id";
     private final Random random = new Random();
 
+    private static final String NOT_FOUND_BY_NUMBER = "Card not found by card number";
+    private static final String NOT_FOUND_BY_ID = "Card not found by card id";
+
     @Override
+    @Transactional(readOnly = true)
     public CardDto getByNumber(String cardNumber) {
-
-        Card card = cardRepository.findByCardNumber(cardNumber)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_NUMBER));
-
-        return cardMapper.toDto(card);
+        return cardMapper.toDto(cardRepository.findByCardNumber(cardNumber)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_NUMBER)));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Card getEntityByNumber(String cardNumber) {
-
         return cardRepository.findByCardNumber(cardNumber)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_NUMBER));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CardDto> getByUserId(UUID userId) {
-        List<Card> cards = cardRepository.findByUserId(userId);
-
-        List<CardDto> result = new ArrayList<>();
-
-        cards.forEach(card -> result.add(cardMapper.toDto(card)));
-        return result;
+        return cardRepository.findByUserId(userId).stream()
+                .map(cardMapper::toDto)
+                .toList();
     }
 
     @Override
+    @Transactional
     public CardDto create(UUID userId, Long bankAccountNumber) {
 
         BankAccount bankAccount = bankAccountRepository.findById(bankAccountNumber)
@@ -86,43 +82,33 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
+    @Transactional
     public void changePin(UUID cardId, String newPin) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
 
         card.setPinCode(passwordEncoder.encode(newPin));
-        cardRepository.save(card);
     }
 
     @Override
     @Transactional
     public CardDto renew(UUID cardId) {
-        try {
-            Card card = cardRepository.findById(cardId)
-                    .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
-
-            card.setExpiresAt(LocalDate.now().plusYears(5));
-            int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
-            card.setCardNumber("4043" + card.getBankAccount().getBankAccountNumber() + randomNumberIdentification);
-
-            Card updated = cardRepository.save(card);
-
-            return cardMapper.toDto(updated);
-        } catch (DataAccessException ex) {
-            log.error("Database connection error: {}", ex.getMessage());
-        throw ex;
-    }
-
-    }
-
-    @Override
-    public void block(UUID cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
 
-        card.setStatus(CardStatus.BLOCKED);
+        card.setExpiresAt(LocalDate.now().plusYears(5));
+        int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
+        card.setCardNumber("4043" + card.getBankAccount().getBankAccountNumber() + randomNumberIdentification);
 
-        cardRepository.save(card);
+        return cardMapper.toDto(card);
+    }
+
+    @Override
+    @Transactional
+    public void block(UUID cardId) {
+        Card card = cardRepository.findById(cardId)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
+        card.setStatus(CardStatus.BLOCKED);
     }
 
     private String buildCode(boolean pin) {

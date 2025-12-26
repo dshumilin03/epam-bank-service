@@ -2,8 +2,7 @@ package com.epam.bank.entities;
 
 import com.epam.bank.services.Chargeable;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -13,7 +12,10 @@ import java.util.UUID;
 @Table(name = "loan")
 @Getter
 @Setter
-public class Loan implements Chargeable {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class  Loan implements Chargeable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

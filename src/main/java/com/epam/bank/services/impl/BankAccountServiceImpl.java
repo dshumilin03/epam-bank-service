@@ -14,7 +14,9 @@ import com.epam.bank.repositories.TransactionRepository;
 import com.epam.bank.repositories.UserRepository;
 import com.epam.bank.services.BankAccountService;
 import lombok.AllArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -29,10 +31,12 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final BankAccountMapper bankAccountMapper;
     private final TransactionMapper transactionMapper;
     private final TransactionRepository transactionRepository;
+
     private static final String NOT_FOUND_BANK_ACCOUNT = "Not found bank account by bankAccountNumber";
 
     @Override
-    public BankAccountDto create(UUID userId) throws NotFoundException {
+    @Transactional
+    public BankAccountDto create(UUID userId) {
         BankAccount newBankAccount = new BankAccount();
 
         newBankAccount.setUser(userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found by Id")));
@@ -44,39 +48,35 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
-    public BankAccountDto getById(Long id) throws NotFoundException {
-        BankAccount bankAccount = bankAccountRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
-
-
-        return bankAccountMapper.toDto(bankAccount);
+    @Transactional(readOnly = true)
+    public BankAccountDto getById(Long id) {
+        return bankAccountMapper.toDto(getOrThrow(id));
     }
 
     @Override
-    public List<TransactionDto> getTransactions(Long id, boolean outgoing) throws NotFoundException {
-        BankAccount bankAccount = bankAccountRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
+    @Transactional(readOnly = true)
+    public List<TransactionDto> getTransactions(Long id, boolean outgoing) {
+        BankAccount bankAccount = getOrThrow(id);
 
         List<Transaction> transactions = outgoing ? bankAccount.getOutgoingTransactions() : bankAccount.getIncomingTransactions();
-        List<TransactionDto> transactionDtoS = new ArrayList<>();
 
-        transactions.forEach(transaction -> transactionDtoS.add(transactionMapper.toDto(transaction)));
-
-        return transactionDtoS;
+        return transactions.stream()
+                .map(transactionMapper::toDto)
+                .toList();
     }
 
     @Override
-    public TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount) throws NotFoundException {
-        BankAccount bankAccount = bankAccountRepository.findById(bankNumber)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
-
+    @Transactional
+    public TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount) {
+        BankAccount bankAccount = getOrThrow(bankNumber);
+        // todo add creation of transaction
         bankAccount.setMoneyAmount(bankAccount.getMoneyAmount().add(moneyAmount));
-        bankAccountRepository.save(bankAccount);
         return TransactionStatus.COMPLETED;
     }
 
     @Override
-    public BankAccountDto getByUserId(UUID id) throws NotFoundException {
+    @Transactional(readOnly = true)
+    public BankAccountDto getByUserId(UUID id) {
         BankAccount bankAccount = bankAccountRepository.findByUserId((id))
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
 
@@ -84,25 +84,31 @@ public class BankAccountServiceImpl implements BankAccountService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TransactionDto> getChargesByUserId(UUID userId) {
         List<Transaction> transactions = transactionRepository.findAllByUserIdAndTypeAndStatus(userId, TransactionType.CHARGE, TransactionStatus.PENDING);
-        List<TransactionDto> transactionDtoS = new ArrayList<>();
 
-        transactions.forEach(transaction -> transactionDtoS.add(transactionMapper.toDto(transaction)));
-
-        return transactionDtoS;
+        return transactions.stream()
+                .map(transactionMapper::toDto)
+                .toList();
     }
 
     @Override
-    public TransactionStatus withdraw(Long bankNumber, BigDecimal moneyAmount) throws NotFoundException {
-        BankAccount bankAccount = bankAccountRepository.findById(bankNumber)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
+    @Transactional
+    public TransactionStatus withdraw(Long bankNumber, BigDecimal moneyAmount) {
+        BankAccount bankAccount = getOrThrow(bankNumber);
+        // todo add creation of transaction
 
         if (bankAccount.getMoneyAmount().subtract(moneyAmount).compareTo(BigDecimal.valueOf(0)) < 0) {
             return TransactionStatus.FAILED;
         }
+
         bankAccount.setMoneyAmount(bankAccount.getMoneyAmount().subtract(moneyAmount));
-        bankAccountRepository.save(bankAccount);
         return TransactionStatus.COMPLETED;
+    }
+
+    private BankAccount getOrThrow(Long id) {
+        return bankAccountRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
     }
 }

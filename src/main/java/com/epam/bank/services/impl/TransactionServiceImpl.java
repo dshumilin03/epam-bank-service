@@ -31,6 +31,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final BankAccountService bankAccountService;
     private final BankAccountRepository bankAccountRepository;
     private final LoanService loanService;
+
     private static final String NOT_FOUND_BY_ID = "Transaction not found by Id";
     private static final String NOT_FOUND_BANK_ACCOUNT = "Bank account not found by number";
 
@@ -45,6 +46,7 @@ public class TransactionServiceImpl implements TransactionService {
         transactionDto.setTargetBankAccountNumber(target.bankAccountNumber());
 
         Transaction transaction = transactionMapper.toEntity(requestDto);
+
         setTransactionTargetAndSourceFields(transaction, requestDto.sourceNumber(), requestDto.targetNumber());
         transaction.setCreatedAt(LocalDateTime.now());
         transaction.setStatus(TransactionStatus.PENDING);
@@ -52,12 +54,11 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionMapper.toDto(transactionRepository.save(transaction));
     }
 
-    // todo in all services switch to spring annotation
     @Override
     @Transactional(readOnly = true)
     public TransactionDto getById(UUID id) {
-        Transaction transaction = transactionRepository
-                .findById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
+
+        Transaction transaction = getOrThrow(id);
         return transactionMapper.toDto(transaction);
     }
 
@@ -86,8 +87,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Transactional
     public TransactionStatus processTransaction(UUID transactionId) {
-        Transaction transaction = transactionRepository.findById(transactionId)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
+        Transaction transaction = getOrThrow(transactionId);
         doMoneyTransfer(transaction);
         markCompleted(transactionId);
 
@@ -98,8 +98,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransactionStatus refund(UUID transactionId) {
 
-        Transaction transaction = transactionRepository
-                .findById(transactionId).orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
+        Transaction transaction = getOrThrow(transactionId);
 
         if (transaction.getTransactionType() == TransactionType.CHARGE) {
             throw new IllegalArgumentException("Can't refund charges");
@@ -122,11 +121,14 @@ public class TransactionServiceImpl implements TransactionService {
     private void doMoneyTransfer(Transaction transaction) {
         BankAccount source = transaction.getSource();
         BankAccount target = transaction.getTarget();
+
         BigDecimal resultMoneyOnSource = source.getMoneyAmount().subtract(transaction.getMoneyAmount());
+
         if (resultMoneyOnSource.compareTo(BigDecimal.valueOf(0)) < 0) {
             throw new InsufficientFundsException("No money for paying");
         }
         source.setMoneyAmount(resultMoneyOnSource);
+
         // for charge let it be government a bank account, charges are not refundable
         if (target != null) {
             target.setMoneyAmount(target.getMoneyAmount().add(transaction.getMoneyAmount()));
@@ -166,5 +168,9 @@ public class TransactionServiceImpl implements TransactionService {
         if (!transactionRepository.existsById(transactionId)) {
             throw new NotFoundException(NOT_FOUND_BY_ID);
         }
+    }
+
+    private Transaction getOrThrow(UUID id) {
+        return transactionRepository.findById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
     }
 }

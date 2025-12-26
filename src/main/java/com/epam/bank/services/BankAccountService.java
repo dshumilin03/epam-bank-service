@@ -10,17 +10,17 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BankAccountService {
-    BankAccountDto create(UUID userId) throws NotFoundException;
+    BankAccountDto create(UUID userId);
 
-    BankAccountDto getById(Long id) throws NotFoundException;
+    BankAccountDto getById(Long id);
 
-    List<TransactionDto> getTransactions(Long id, boolean outgoing) throws NotFoundException;
+    List<TransactionDto> getTransactions(Long id, boolean outgoing);
 
-    TransactionStatus withdraw(Long bankNumber, BigDecimal moneyAmount) throws NotFoundException;
+    TransactionStatus withdraw(Long bankNumber, BigDecimal moneyAmount);
 
-    TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount) throws NotFoundException;
+    TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount);
 
-    BankAccountDto getByUserId(UUID id) throws NotFoundException;
+    BankAccountDto getByUserId(UUID id);
 
     List<TransactionDto> getChargesByUserId(UUID userId);
 }

@@ -16,7 +16,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,14 +26,20 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+
     private static final String NOT_FOUND_USER_BY_ID = "User not found by Id";
 
     @Transactional
     public UserDto register(RegisterRequest registerUserDto) {
-        if (userRepository.findByEmail(registerUserDto.email()).isPresent() ||
-                userRepository.findByPassportId(passwordEncoder.encode(registerUserDto.passportId())).isPresent()) {
+        if (userRepository.findByEmail(
+                registerUserDto.email()).isPresent() ||
+                userRepository.findByPassportId(
+                        passwordEncoder.encode(
+                                registerUserDto.passportId())).isPresent()) {
+
             throw new UserExistsException("User with this data already exists");
         }
+
         User newUser = userMapper.toEntity(registerUserDto);
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
         newUser.setPassportId(passwordEncoder.encode(newUser.getPassportId()));
@@ -46,8 +51,8 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public UserDto changeCredentials(UUID id, UserCredentialsDto userCredentialsDto) {
-        User entity = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER_BY_ID));
+
+        User entity = getOrThrow(id);
 
         Boolean existsByEmail = userRepository.existsByEmail(userCredentialsDto.email());
         Boolean notSameEmail = !userCredentialsDto.email().equals(entity.getEmail());
@@ -61,15 +66,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserDto getById(UUID uuid) {
-        return userMapper.toDto(userRepository.findById(uuid)
-                .orElseThrow(() -> new NotFoundException("User not found by Id")));
+    public UserDto getById(UUID id) {
+        return userMapper.toDto(getOrThrow(id));
     }
 
     @Transactional
     public UserDto setStatus(UUID userId, Boolean disabled) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found by Id"));
+        User user = getOrThrow(userId);
 
         user.setIsDisabled(disabled);
 
@@ -79,11 +82,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public List<UserDto> getByFullName(String fullName) {
-        List<UserDto> userList = new ArrayList<>();
 
-        userRepository.findByFullName((fullName)).forEach(user -> userList.add(userMapper.toDto(user)));
-
-        return userList;
+        return userRepository.findByFullName(fullName).stream()
+                .map(userMapper::toDto)
+                .toList();
     }
 
     @Override
@@ -91,5 +93,10 @@ public class UserServiceImpl implements UserService {
     public UserDto getByEmail(String email) {
         return userMapper.toDto(userRepository.findByEmail((email))
                 .orElseThrow(() -> new NotFoundException("User not found by email")));
+    }
+
+    private User getOrThrow(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_USER_BY_ID));
     }
 }

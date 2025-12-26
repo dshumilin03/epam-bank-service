@@ -14,7 +14,7 @@ public interface LoanService {
 
     LoanDto open(LoanRequestDto loanRequestDto);
 
-    LoanDto update(UUID transactionId, LoanDto loanDto);
+    LoanDto update(UUID id, LoanDto loanDto);
 
     LoanDto getById(UUID loanId);
 

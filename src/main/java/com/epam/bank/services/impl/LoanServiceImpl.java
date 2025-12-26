@@ -1,25 +1,23 @@
 package com.epam.bank.services.impl;
 
-import com.epam.bank.dtos.BankAccountDto;
 import com.epam.bank.dtos.LoanDto;
 import com.epam.bank.dtos.LoanRequestDto;
+import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Loan;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.exceptions.UnknownStrategyTypeException;
-import com.epam.bank.mappers.BankAccountMapper;
 import com.epam.bank.mappers.LoanMapper;
+import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.LoanRepository;
 import com.epam.bank.services.BankAccountService;
 import com.epam.bank.services.LoanService;
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,74 +29,60 @@ public class LoanServiceImpl implements LoanService {
     private final LoanRepository loanRepository;
     private final BankAccountService bankAccountService;
     private final LoanMapper loanMapper;
-    private final BankAccountMapper bankAccountMapper;
+    private final BankAccountRepository bankAccountRepository;
+
+    private static final String NOT_FOUND_BY_ID = "Loan not found by Id";
 
     @Override
+    @Transactional(readOnly = true)
     public List<LoanDto> getUserLoansByUserId(UUID id) {
-        List<LoanDto> result = new ArrayList<>();
-        List<Loan> loans = loanRepository.findByUserId(id);
-
-        loans.forEach(loan -> result.add(loanMapper.toDto(loan)));
-        return result;
+        return loanRepository.findByUserId(id)
+                .stream()
+                .map(loanMapper::toDto)
+                .toList();
     }
 
     @Override
+    @Transactional
     public void close(UUID id) {
-        Loan loan = loanRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Loan not found by Id"));
-
-        loanRepository.delete(loan);
+        // todo logic of closing may be added, may be loan status
+        loanRepository.delete(getOrThrowById(id));
     }
 
     @Override
     @Transactional
     public LoanDto open(LoanRequestDto loanRequestDto) {
-        try {
-            LoanDto loanDto = loanMapper.toDto(loanRequestDto);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nextChargeAt;
 
-            BankAccountDto bankAccount = bankAccountService.getById(loanRequestDto.bankAccountNumber());
-            loanDto.setBankAccount(bankAccount);
-            loanDto.setCreatedAt(LocalDateTime.now());
-            loanDto.setLastChargeAt(loanDto.getCreatedAt());
-
-            // monthly or daily
-            if (loanRequestDto.chargeStrategyType().name().equals(ChargeStrategyType.MONTHLY.name())) {
-                loanDto.setNextChargeAt(LocalDateTime.now().plusMonths(1));
-            } else {
-                loanDto.setNextChargeAt(LocalDateTime.now().plusDays(1));
-
-            }
-
-            Loan loan = loanMapper.toEntity(loanDto);
-            LocalDateTime now = LocalDateTime.now();
-            loan.setCreatedAt(now);
-            loan.setBankAccount(bankAccountMapper.toEntity(loanDto.getBankAccount()));
-
-            ChargeStrategyType strategyType = loan.getChargeStrategyType();
-
-            if (strategyType == null) {
-                throw new UnknownStrategyTypeException("Unknown strategy type");
-            }
-
-            switch (strategyType) {
-                case DAILY -> loan.setNextChargeAt(now.plusDays(1));
-                case MONTHLY -> loan.setNextChargeAt(now.plusMonths(1));
-                default -> throw new UnknownStrategyTypeException("Unknown strategy type");
-            }
-            bankAccountService.deposit(bankAccount.bankAccountNumber(), loanRequestDto.moneyLeft());
-            return loanMapper.toDto(loanRepository.save(loan));
-        } catch (DataAccessException e) {
-            log.error(e);
-            throw e;
+        switch (loanRequestDto.chargeStrategyType()) {
+            case ChargeStrategyType.MONTHLY -> nextChargeAt = now.plusMonths(1);
+            case ChargeStrategyType.DAILY -> nextChargeAt = now.plusDays(1);
+            default -> throw new UnknownStrategyTypeException("Got unknown strategy from request");
         }
+
+        BankAccount bankAccount = bankAccountRepository.findById(loanRequestDto.bankAccountNumber())
+                .orElseThrow(() -> new NotFoundException("Not found bank account by number"));
+        Loan loan = Loan.builder().
+                moneyLeft(loanRequestDto.moneyLeft())
+                .percent(loanRequestDto.percent())
+                .chargeStrategyType(loanRequestDto.chargeStrategyType())
+                .bankAccount(bankAccount)
+                .createdAt(LocalDateTime.now())
+                .nextChargeAt(nextChargeAt)
+                .lastChargeAt(now)
+                .termMonths(loanRequestDto.termMonths())
+                .build();
+
+        bankAccountService.deposit(bankAccount.getBankAccountNumber(), loanRequestDto.moneyLeft());
+        return loanMapper.toDto(loanRepository.save(loan));
     }
 
     @Override
-    public LoanDto update(UUID transactionId, LoanDto loanDto) {
+    @Transactional
+    public LoanDto update(UUID id, LoanDto loanDto) {
 
-        Loan loan = loanRepository.findById(transactionId)
-                .orElseThrow(() -> new NotFoundException("Loan not found by Id"));
-
+        Loan loan = getOrThrowById(id);
         Loan loanUpdate = loanMapper.toEntity(loanDto);
 
         updateFields(loan, loanUpdate);
@@ -106,17 +90,15 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LoanDto getById(UUID loanId) {
-        Loan loan = loanRepository.findById(loanId)
-                .orElseThrow(() -> new NotFoundException("Not found Loan by Id"));
-
-        return loanMapper.toDto(loan);
+        return loanMapper.toDto(getOrThrowById(loanId));
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Loan getEntityById(UUID loanId) {
-        return loanRepository.findById(loanId)
-                .orElseThrow(() -> new NotFoundException("Not found Loan by Id"));
+        return getOrThrowById(loanId);
     }
 
     private void updateFields(Loan loan, Loan update) {
@@ -131,4 +113,8 @@ public class LoanServiceImpl implements LoanService {
         loan.setLastChargeAt(update.getLastChargeAt());
     }
 
+    private Loan getOrThrowById(UUID id) {
+        return loanRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
+    }
 }
