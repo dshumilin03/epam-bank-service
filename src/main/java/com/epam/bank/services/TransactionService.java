@@ -3,7 +3,9 @@ package com.epam.bank.services;
 import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.TransactionStatus;
+import com.epam.bank.entities.TransactionType;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface TransactionService {
@@ -18,4 +20,6 @@ public interface TransactionService {
     TransactionStatus processTransaction(UUID transactionId);
 
     TransactionStatus refund(UUID transactionId);
+
+    List<TransactionDto> findAllByUserIdAndTypeAndStatus(UUID userId, TransactionType transactionType, TransactionStatus transactionStatus);
 }

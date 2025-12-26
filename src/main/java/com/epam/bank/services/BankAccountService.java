@@ -3,7 +3,6 @@ package com.epam.bank.services;
 import com.epam.bank.dtos.BankAccountDto;
 import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.entities.TransactionStatus;
-import com.epam.bank.exceptions.NotFoundException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -21,6 +20,4 @@ public interface BankAccountService {
     TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount);
 
     BankAccountDto getByUserId(UUID id);
-
-    List<TransactionDto> getChargesByUserId(UUID userId);
 }

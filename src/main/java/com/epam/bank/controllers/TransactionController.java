@@ -3,6 +3,7 @@ package com.epam.bank.controllers;
 import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.TransactionStatus;
+import com.epam.bank.entities.TransactionType;
 import com.epam.bank.services.TransactionService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -30,6 +32,14 @@ public class TransactionController {
         TransactionDto transactionDto = transactionService.getById(transactionId);
 
         return ResponseEntity.status(HttpStatus.OK).body(transactionDto);
+    }
+
+    @GetMapping("/charges/users/{userId}")
+    public ResponseEntity<List<TransactionDto>> getChargesByUserId(@PathVariable UUID userId) {
+        List<TransactionDto> transactionDtoS = transactionService
+                .findAllByUserIdAndTypeAndStatus(userId, TransactionType.CHARGE, TransactionStatus.PENDING);
+
+        return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
     }
 
     @PostMapping("/{transactionId}")

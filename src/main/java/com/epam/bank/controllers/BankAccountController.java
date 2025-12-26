@@ -31,23 +31,10 @@ public class BankAccountController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
+    // todo move to transaction controller
     @GetMapping("/transactions/{transactionId}")
     public ResponseEntity<List<TransactionDto>> getTransactions(@PathVariable Long transactionId, @RequestParam(name = "outgoing") boolean outgoing) {
         List<TransactionDto> transactionDtoS = bankAccountService.getTransactions(transactionId, outgoing);
-
-        return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
-    }
-
-    @GetMapping("/transactions/charges/users/{userId}")
-    public ResponseEntity<List<TransactionDto>> getChargesByUserId(@PathVariable UUID userId) {
-        List<TransactionDto> transactionDtoS = bankAccountService.getChargesByUserId(userId);
-
-        return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
-    }
-
-    @GetMapping(value = "/transactions/{userId}", params = "pending=true")
-    public ResponseEntity<List<TransactionDto>> getLoans(@PathVariable UUID userId) {
-        List<TransactionDto> transactionDtoS = bankAccountService.getChargesByUserId(userId);
 
         return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
     }

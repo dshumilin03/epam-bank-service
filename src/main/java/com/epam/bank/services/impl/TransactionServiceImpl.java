@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -38,7 +39,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public TransactionDto create(TransactionRequestDto requestDto) {
-        // in future facade can manage this
+        // todo create transaction factory
         BankAccountDto source = bankAccountService.getById(requestDto.sourceNumber());
         BankAccountDto target = bankAccountService.getById(requestDto.targetNumber());
         TransactionDto transactionDto = transactionMapper.toDto(requestDto);
@@ -89,9 +90,13 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionStatus processTransaction(UUID transactionId) {
         Transaction transaction = getOrThrow(transactionId);
         doMoneyTransfer(transaction);
-        markCompleted(transactionId);
 
-        return TransactionStatus.COMPLETED;
+        TransactionStatus status = transaction.getTransactionType().equals(TransactionType.REFUND)
+                ? TransactionStatus.REFUNDED
+                : TransactionStatus.COMPLETED;
+
+        transaction.setStatus(status);
+        return status;
     }
 
     @Override
@@ -103,6 +108,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (transaction.getTransactionType() == TransactionType.CHARGE) {
             throw new IllegalArgumentException("Can't refund charges");
         }
+        // todo move to transaction factory
         // target and source changed because of refund
         TransactionRequestDto transactionRequestDto =
                 new TransactionRequestDto(
@@ -117,7 +123,17 @@ public class TransactionServiceImpl implements TransactionService {
         return processTransaction(create(transactionRequestDto).getId());
     }
 
+    @Override
+    @Transactional
+    public List<TransactionDto> findAllByUserIdAndTypeAndStatus(UUID userId, TransactionType transactionType, TransactionStatus transactionStatus) {
+        return transactionRepository
+                .findAllByUserIdAndTypeAndStatus(userId, transactionType, transactionStatus).stream()
+                    .map(transactionMapper::toDto)
+                    .toList();
+    }
+
     // should be invoked in @Transactional
+    // todo create money processor
     private void doMoneyTransfer(Transaction transaction) {
         BankAccount source = transaction.getSource();
         BankAccount target = transaction.getTarget();
@@ -136,6 +152,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         if (transaction.getTransactionType() == TransactionType.CHARGE) {
 
+            // todo should react on paid event
             Loan loan = loanService.getEntityById(
                     UUID.fromString(
                             transaction.getDescription().substring(24))); // This is charge with ID: (uuid)
@@ -143,23 +160,14 @@ public class TransactionServiceImpl implements TransactionService {
         }
     }
 
-    // should be invoked in @Transactional
-    private void markCompleted(UUID transactionId) {
-
-        Transaction transaction = transactionRepository.findById(transactionId).orElseThrow();
-
-        TransactionStatus status = transaction.getTransactionType().equals(TransactionType.REFUND)
-                ? TransactionStatus.REFUNDED
-                : TransactionStatus.COMPLETED;
-
-        transaction.setStatus(status);
-    }
 
     private void setTransactionTargetAndSourceFields(Transaction transaction, Long source, Long target) {
         BankAccount sourceEntity = bankAccountRepository.findById(source)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
+
         BankAccount targetEntity = bankAccountRepository.findById(target)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
+
         transaction.setSource(sourceEntity);
         transaction.setTarget(targetEntity);
     }

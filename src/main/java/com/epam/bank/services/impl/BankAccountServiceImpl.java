@@ -5,16 +5,13 @@ import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Transaction;
 import com.epam.bank.entities.TransactionStatus;
-import com.epam.bank.entities.TransactionType;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.BankAccountMapper;
 import com.epam.bank.mappers.TransactionMapper;
 import com.epam.bank.repositories.BankAccountRepository;
-import com.epam.bank.repositories.TransactionRepository;
 import com.epam.bank.repositories.UserRepository;
 import com.epam.bank.services.BankAccountService;
 import lombok.AllArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +27,6 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final UserRepository userRepository;
     private final BankAccountMapper bankAccountMapper;
     private final TransactionMapper transactionMapper;
-    private final TransactionRepository transactionRepository;
 
     private static final String NOT_FOUND_BANK_ACCOUNT = "Not found bank account by bankAccountNumber";
 
@@ -53,6 +49,7 @@ public class BankAccountServiceImpl implements BankAccountService {
         return bankAccountMapper.toDto(getOrThrow(id));
     }
 
+    // todo move to transaction service
     @Override
     @Transactional(readOnly = true)
     public List<TransactionDto> getTransactions(Long id, boolean outgoing) {
@@ -81,16 +78,6 @@ public class BankAccountServiceImpl implements BankAccountService {
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
 
         return bankAccountMapper.toDto(bankAccount);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TransactionDto> getChargesByUserId(UUID userId) {
-        List<Transaction> transactions = transactionRepository.findAllByUserIdAndTypeAndStatus(userId, TransactionType.CHARGE, TransactionStatus.PENDING);
-
-        return transactions.stream()
-                .map(transactionMapper::toDto)
-                .toList();
     }
 
     @Override

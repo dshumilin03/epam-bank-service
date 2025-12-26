@@ -69,6 +69,7 @@ public class CardServiceImpl implements CardService {
         String pinCode = buildCode(true);
 
         // let 4043 would be epam bank identification
+        // todo add card generator
         newCard.setCardNumber("4043" + bankAccountNumber + randomNumberIdentification);
         newCard.setBankAccount(bankAccount);
 
@@ -96,6 +97,7 @@ public class CardServiceImpl implements CardService {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
 
+        // todo this is card generator
         card.setExpiresAt(LocalDate.now().plusYears(5));
         int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
         card.setCardNumber("4043" + card.getBankAccount().getBankAccountNumber() + randomNumberIdentification);
@@ -111,6 +113,7 @@ public class CardServiceImpl implements CardService {
         card.setStatus(CardStatus.BLOCKED);
     }
 
+    // todo this is generator
     private String buildCode(boolean pin) {
         StringBuilder sc = new StringBuilder();
 

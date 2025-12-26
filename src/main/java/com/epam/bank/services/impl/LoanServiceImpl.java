@@ -61,6 +61,7 @@ public class LoanServiceImpl implements LoanService {
             default -> throw new UnknownStrategyTypeException("Got unknown strategy from request");
         }
 
+        // todo create loan factory
         BankAccount bankAccount = bankAccountRepository.findById(loanRequestDto.bankAccountNumber())
                 .orElseThrow(() -> new NotFoundException("Not found bank account by number"));
         Loan loan = Loan.builder().
@@ -74,6 +75,7 @@ public class LoanServiceImpl implements LoanService {
                 .termMonths(loanRequestDto.termMonths())
                 .build();
 
+        //todo need event when loan created deposit money
         bankAccountService.deposit(bankAccount.getBankAccountNumber(), loanRequestDto.moneyLeft());
         return loanMapper.toDto(loanRepository.save(loan));
     }
