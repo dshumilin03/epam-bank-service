@@ -29,15 +29,18 @@ public class SecurityConfiguration {
     private final UserDetailsService userDetailsService;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // todo manage matchers
                         .requestMatchers("/**").permitAll()
                         .requestMatchers("/api/**").hasAnyRole("USER", "MANAGER")
                 )
+                .formLogin(httpSecurityFormLoginConfigurer ->
+                        httpSecurityFormLoginConfigurer.loginPage("/login").permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .deleteCookies("JWT")
@@ -58,7 +61,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
         return config.getAuthenticationManager();
     }
 

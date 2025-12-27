@@ -1,14 +1,19 @@
 package com.epam.bank.mappers.impl;
 
+import com.epam.bank.domain.TransactionBuilder;
 import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.Transaction;
 import com.epam.bank.mappers.TransactionMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 
 @Component
+@RequiredArgsConstructor
 public class TransactionMapperImpl implements TransactionMapper {
+
+    private final TransactionBuilder builder;
 
     @Override
     public Transaction toEntity(TransactionDto dto) {
@@ -16,17 +21,15 @@ public class TransactionMapperImpl implements TransactionMapper {
             return null;
         }
 
-        Transaction.TransactionBuilder transaction = Transaction.builder();
-
         // source and target are ignored
-        transaction.id(dto.getId());
-        transaction.createdAt(dto.getCreatedAt());
-        transaction.moneyAmount(dto.getMoneyAmount());
-        transaction.description(dto.getDescription());
-        transaction.status(dto.getStatus());
-        transaction.transactionType(dto.getTransactionType());
+        builder.id(dto.getId());
+        builder.createdAt(dto.getCreatedAt());
+        builder.moneyAmount(dto.getMoneyAmount());
+        builder.description(dto.getDescription());
+        builder.status(dto.getStatus());
+        builder.transactionType(dto.getTransactionType());
 
-        return transaction.build();
+        return builder.build();
     }
 
     @Override
@@ -35,13 +38,11 @@ public class TransactionMapperImpl implements TransactionMapper {
             return null;
         }
 
-        Transaction.TransactionBuilder transaction = Transaction.builder();
+        builder.moneyAmount(dto.moneyAmount());
+        builder.description(dto.description());
+        builder.transactionType(dto.transactionType());
 
-        transaction.moneyAmount(dto.moneyAmount());
-        transaction.description(dto.description());
-        transaction.transactionType(dto.transactionType());
-
-        return transaction.build();
+        return builder.build();
     }
 
     @Override

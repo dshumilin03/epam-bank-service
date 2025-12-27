@@ -3,9 +3,11 @@ package com.epam.bank.mappers;
 import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.dtos.TransactionRequestDto;
 import com.epam.bank.entities.Transaction;
+import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.stereotype.Component;
 
+@Mapper
 @Component
 public interface TransactionMapper {
     @Mapping(target = "source", ignore = true)
@@ -21,14 +23,16 @@ public interface TransactionMapper {
     @Mapping(target = "target", ignore = true)
     Transaction toEntity(TransactionRequestDto dto);
 
+    @Mapping(target = "sourceBankAccountNumber", ignore = true)
+    @Mapping(target = "targetBankAccountNumber", ignore = true)
     TransactionDto toDto(Transaction transaction);
 
     //ignore - in service if needed
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "source", ignore = true)
-    @Mapping(target = "target", ignore = true)
+    @Mapping(target = "sourceBankAccountNumber", ignore = true)
+    @Mapping(target = "targetBankAccountNumber", ignore = true)
     TransactionDto toDto(TransactionRequestDto transactionRequestDto);
 
 }

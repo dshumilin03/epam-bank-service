@@ -1,5 +1,6 @@
 package com.epam.bank.services.impl;
 
+import com.epam.bank.domain.BankAccountProvider;
 import com.epam.bank.dtos.CardDto;
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.Card;
@@ -26,8 +27,8 @@ import java.util.UUID;
 public class CardServiceImpl implements CardService {
     private final CardRepository cardRepository;
     private final CardMapper cardMapper;
-    private final BankAccountRepository bankAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BankAccountProvider bankAccountProvider;
     private final Random random = new Random();
 
     private static final String NOT_FOUND_BY_NUMBER = "Card not found by card number";
@@ -59,8 +60,7 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public CardDto create(UUID userId, Long bankAccountNumber) {
 
-        BankAccount bankAccount = bankAccountRepository.findById(bankAccountNumber)
-                .orElseThrow(() -> new NotFoundException("BankAccount not found by number"));
+        BankAccount bankAccount = bankAccountProvider.getOrThrow(bankAccountNumber);
 
         Card newCard = new Card();
         int randomNumberIdentification = random.nextInt(9999 - 1) + 1;
@@ -69,6 +69,7 @@ public class CardServiceImpl implements CardService {
         String pinCode = buildCode(true);
 
         // let 4043 would be epam bank identification
+
         // todo add card generator
         newCard.setCardNumber("4043" + bankAccountNumber + randomNumberIdentification);
         newCard.setBankAccount(bankAccount);

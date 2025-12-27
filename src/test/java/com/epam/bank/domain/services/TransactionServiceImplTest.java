@@ -1,4 +1,4 @@
-package com.epam.bank.services;
+package com.epam.bank.domain.services;
 
 import com.epam.bank.dtos.BankAccountDto;
 import com.epam.bank.dtos.TransactionDto;
@@ -12,6 +12,7 @@ import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.TransactionMapper;
 import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.TransactionRepository;
+import com.epam.bank.services.BankAccountService;
 import com.epam.bank.services.impl.TransactionServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

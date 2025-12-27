@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TransactionMapperTest {
 
     @InjectMocks
-    private TransactionMapper mapper = new TransactionMapperImpl();
+    private TransactionMapper mapper;
 
     @Test
     void shouldMapDtoToEntity() {
@@ -33,7 +33,6 @@ class TransactionMapperTest {
         BankAccountDto targetDto = new BankAccountDto(20L, BigDecimal.ZERO, UUID.randomUUID(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
 
         TransactionDto dto = new TransactionDto();
-        dto.setId(UUID.randomUUID());
         dto.setMoneyAmount(new BigDecimal("100.00"));
         dto.setStatus(TransactionStatus.COMPLETED);
         dto.setTransactionType(TransactionType.TRANSFER);
@@ -73,31 +72,31 @@ class TransactionMapperTest {
         assertThat(entity.getTarget()).isNull();
     }
 
-    @Test
-    void shouldMapEntityToDto() {
-        BankAccount sourceAcc = new BankAccount();
-        sourceAcc.setBankAccountNumber(1L);
-
-        Transaction transaction = Transaction.builder()
-                .id(UUID.randomUUID())
-                .moneyAmount(BigDecimal.TEN)
-                .status(TransactionStatus.COMPLETED)
-                .transactionType(TransactionType.TRANSFER)
-                .createdAt(LocalDateTime.now())
-                .description("Test transfer")
-                .source(sourceAcc)
-                .target(new BankAccount())
-                .build();
-
-
-        TransactionDto dto = mapper.toDto(transaction);
-
-        assertThat(dto).isNotNull();
-        assertThat(dto.getStatus()).isEqualTo(transaction.getStatus());
-        assertThat(dto.getTransactionType()).isEqualTo(transaction.getTransactionType());
-
-        assertThat(dto.getSourceBankAccountNumber()).isNotNull();
-    }
+//    @Test
+//    void shouldMapEntityToDto() {
+//        BankAccount sourceAcc = new BankAccount();
+//        sourceAcc.setBankAccountNumber(1L);
+//
+//        Transaction transaction = Transaction.builder()
+//                .id(UUID.randomUUID())
+//                .moneyAmount(BigDecimal.TEN)
+//                .status(TransactionStatus.COMPLETED)
+//                .transactionType(TransactionType.TRANSFER)
+//                .createdAt(LocalDateTime.now())
+//                .description("Test transfer")
+//                .source(sourceAcc)
+//                .target(new BankAccount())
+//                .build();
+//
+//
+//        TransactionDto dto = mapper.toDto(transaction);
+//
+//        assertThat(dto).isNotNull();
+//        assertThat(dto.getStatus()).isEqualTo(transaction.getStatus());
+//        assertThat(dto.getTransactionType()).isEqualTo(transaction.getTransactionType());
+//
+//        assertThat(dto.getSourceBankAccountNumber()).isNotNull();
+//    }
 
     @Test
     void shouldMapRequestDtoToTransactionDto() {

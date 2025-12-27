@@ -1,4 +1,4 @@
-package com.epam.bank.services;
+package com.epam.bank.domain.services;
 
 import com.epam.bank.entities.BankAccount;
 import com.epam.bank.entities.ChargeStrategyType;
@@ -6,6 +6,7 @@ import com.epam.bank.entities.Transaction;
 import com.epam.bank.entities.TransactionType;
 import com.epam.bank.mappers.TransactionMapper;
 import com.epam.bank.repositories.TransactionRepository;
+import com.epam.bank.services.Chargeable;
 import com.epam.bank.services.impl.ChargeServiceImpl;
 import com.epam.bank.services.strategies.ChargeStrategy;
 import org.junit.jupiter.api.BeforeEach;

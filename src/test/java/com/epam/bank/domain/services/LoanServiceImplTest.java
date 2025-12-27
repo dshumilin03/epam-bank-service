@@ -1,4 +1,4 @@
-package com.epam.bank.services;
+package com.epam.bank.domain.services;
 
 import com.epam.bank.dtos.BankAccountDto;
 import com.epam.bank.dtos.LoanDto;
@@ -10,6 +10,8 @@ import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.exceptions.UnknownStrategyTypeException;
 import com.epam.bank.mappers.LoanMapper;
 import com.epam.bank.repositories.LoanRepository;
+import com.epam.bank.services.BankAccountService;
+import com.epam.bank.services.Chargeable;
 import com.epam.bank.services.impl.LoanServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,24 +1,23 @@
 package com.epam.bank.services.impl;
 
-import com.epam.bank.dtos.BankAccountDto;
+import com.epam.bank.domain.BankAccountProvider;
+import com.epam.bank.domain.MoneyProcessor;
+import com.epam.bank.domain.TransactionFactory;
 import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.dtos.TransactionRequestDto;
-import com.epam.bank.entities.*;
-import com.epam.bank.exceptions.InsufficientFundsException;
+import com.epam.bank.entities.BankAccount;
+import com.epam.bank.entities.Transaction;
+import com.epam.bank.entities.TransactionStatus;
+import com.epam.bank.entities.TransactionType;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.TransactionMapper;
-import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.TransactionRepository;
-import com.epam.bank.services.BankAccountService;
-import com.epam.bank.services.LoanService;
 import com.epam.bank.services.TransactionService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,30 +28,19 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
-    private final BankAccountService bankAccountService;
-    private final BankAccountRepository bankAccountRepository;
-    private final LoanService loanService;
+    private final MoneyProcessor moneyProcessor;
+    private final BankAccountProvider bankAccountProvider;
 
     private static final String NOT_FOUND_BY_ID = "Transaction not found by Id";
-    private static final String NOT_FOUND_BANK_ACCOUNT = "Bank account not found by number";
+    private final TransactionFactory transactionFactory;
 
     @Override
     @Transactional
     public TransactionDto create(TransactionRequestDto requestDto) {
-        // todo create transaction factory
-        BankAccountDto source = bankAccountService.getById(requestDto.sourceNumber());
-        BankAccountDto target = bankAccountService.getById(requestDto.targetNumber());
-        TransactionDto transactionDto = transactionMapper.toDto(requestDto);
-        transactionDto.setSourceBankAccountNumber(source.bankAccountNumber());
-        transactionDto.setTargetBankAccountNumber(target.bankAccountNumber());
 
-        Transaction transaction = transactionMapper.toEntity(requestDto);
-
-        setTransactionTargetAndSourceFields(transaction, requestDto.sourceNumber(), requestDto.targetNumber());
-        transaction.setCreatedAt(LocalDateTime.now());
-        transaction.setStatus(TransactionStatus.PENDING);
-
-        return transactionMapper.toDto(transactionRepository.save(transaction));
+        return transactionMapper.toDto(
+                transactionRepository.save(
+                        transactionFactory.createTransaction(requestDto)));
     }
 
     @Override
@@ -67,18 +55,12 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransactionDto update(UUID transactionId, TransactionDto updateDto) {
         existsOrThrow(transactionId);
+        Transaction transaction = getOrThrow(transactionId);
 
-        updateDto.setId(transactionId);
+        updateFields(updateDto, transaction);
 
-        Transaction entity = transactionMapper.toEntity(updateDto);
-
-        setTransactionTargetAndSourceFields(entity, updateDto.getSourceBankAccountNumber(), updateDto.getTargetBankAccountNumber());
-        entity.setStatus(updateDto.getStatus());
-        entity.setCreatedAt(updateDto.getCreatedAt());
-
-        return transactionMapper.toDto(transactionRepository.save(entity));
+        return transactionMapper.toDto(transaction);
     }
-
 
     @Override
     public void delete(UUID id) {
@@ -89,12 +71,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransactionStatus processTransaction(UUID transactionId) {
         Transaction transaction = getOrThrow(transactionId);
-        doMoneyTransfer(transaction);
-
-        TransactionStatus status = transaction.getTransactionType().equals(TransactionType.REFUND)
-                ? TransactionStatus.REFUNDED
-                : TransactionStatus.COMPLETED;
-
+        TransactionStatus status = moneyProcessor.doTransfer(transaction);
         transaction.setStatus(status);
         return status;
     }
@@ -102,25 +79,16 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public TransactionStatus refund(UUID transactionId) {
-
         Transaction transaction = getOrThrow(transactionId);
 
         if (transaction.getTransactionType() == TransactionType.CHARGE) {
             throw new IllegalArgumentException("Can't refund charges");
         }
-        // todo move to transaction factory
-        // target and source changed because of refund
-        TransactionRequestDto transactionRequestDto =
-                new TransactionRequestDto(
-                        transaction.getMoneyAmount(),
-                        transaction.getDescription(),
-                        TransactionType.REFUND,
-                        transaction.getTarget().getBankAccountNumber(),
-                        transaction.getSource().getBankAccountNumber()
-                );
 
-        // it's ok but may be to create process refund?
-        return processTransaction(create(transactionRequestDto).getId());
+        TransactionStatus status = moneyProcessor.doRefund(transaction);
+        transaction.setStatus(status);
+
+        return status;
     }
 
     @Override
@@ -128,48 +96,21 @@ public class TransactionServiceImpl implements TransactionService {
     public List<TransactionDto> findAllByUserIdAndTypeAndStatus(UUID userId, TransactionType transactionType, TransactionStatus transactionStatus) {
         return transactionRepository
                 .findAllByUserIdAndTypeAndStatus(userId, transactionType, transactionStatus).stream()
-                    .map(transactionMapper::toDto)
-                    .toList();
+                .map(transactionMapper::toDto)
+                .toList();
     }
 
-    // should be invoked in @Transactional
-    // todo create money processor
-    private void doMoneyTransfer(Transaction transaction) {
-        BankAccount source = transaction.getSource();
-        BankAccount target = transaction.getTarget();
+    @Override
+    @Transactional(readOnly = true)
+    public List<TransactionDto> getBankAccountTransactions(Long bankAccountId, boolean outgoing) {
 
-        BigDecimal resultMoneyOnSource = source.getMoneyAmount().subtract(transaction.getMoneyAmount());
+        BankAccount bankAccount = bankAccountProvider.getOrThrow(bankAccountId);
 
-        if (resultMoneyOnSource.compareTo(BigDecimal.valueOf(0)) < 0) {
-            throw new InsufficientFundsException("No money for paying");
-        }
-        source.setMoneyAmount(resultMoneyOnSource);
+        List<Transaction> transactions = outgoing ? bankAccount.getOutgoingTransactions() : bankAccount.getIncomingTransactions();
 
-        // for charge let it be government a bank account, charges are not refundable
-        if (target != null) {
-            target.setMoneyAmount(target.getMoneyAmount().add(transaction.getMoneyAmount()));
-        }
-
-        if (transaction.getTransactionType() == TransactionType.CHARGE) {
-
-            // todo should react on paid event
-            Loan loan = loanService.getEntityById(
-                    UUID.fromString(
-                            transaction.getDescription().substring(24))); // This is charge with ID: (uuid)
-            loan.setMoneyLeft(loan.getMoneyLeft().subtract(transaction.getMoneyAmount()));
-        }
-    }
-
-
-    private void setTransactionTargetAndSourceFields(Transaction transaction, Long source, Long target) {
-        BankAccount sourceEntity = bankAccountRepository.findById(source)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
-
-        BankAccount targetEntity = bankAccountRepository.findById(target)
-                .orElseThrow(() -> new NotFoundException(NOT_FOUND_BANK_ACCOUNT));
-
-        transaction.setSource(sourceEntity);
-        transaction.setTarget(targetEntity);
+        return transactions.stream()
+                .map(transactionMapper::toDto)
+                .toList();
     }
 
     private void existsOrThrow(UUID transactionId) {
@@ -180,5 +121,15 @@ public class TransactionServiceImpl implements TransactionService {
 
     private Transaction getOrThrow(UUID id) {
         return transactionRepository.findById(id).orElseThrow(() -> new NotFoundException(NOT_FOUND_BY_ID));
+    }
+
+    private void updateFields(TransactionDto updateDto, Transaction transaction) {
+        transaction.setCreatedAt(updateDto.getCreatedAt());
+        transaction.setStatus(updateDto.getStatus());
+        transaction.setDescription(updateDto.getDescription());
+        transaction.setTransactionType(updateDto.getTransactionType());
+        transaction.setSource(bankAccountProvider.getOrThrow(updateDto.getSourceBankAccountNumber()));
+        transaction.setTarget(bankAccountProvider.getOrThrow(updateDto.getTargetBankAccountNumber()));
+        transaction.setMoneyAmount(updateDto.getMoneyAmount());
     }
 }

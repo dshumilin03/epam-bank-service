@@ -20,7 +20,7 @@ public class LoggingAspect {
     private static final Logger log = LoggerFactory.getLogger(LoggingAspect.class);
 
     @Pointcut("execution(public * com.epam.bank.controllers..*.*(..)) || " +
-            "execution(public * com.epam.bank.services..*.*(..)) ||" +
+            "execution(public * com.epam.bank.domain.services..*.*(..)) ||" +
             "execution(public * com.epam.bank.repositories..*.*(..)) ||" +
             "execution(public * com.epam.bank.mappers..*.*(..))")
     public void applicationMethods() {

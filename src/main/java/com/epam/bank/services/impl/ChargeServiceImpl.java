@@ -1,5 +1,6 @@
 package com.epam.bank.services.impl;
 
+import com.epam.bank.domain.TransactionBuilder;
 import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Transaction;
 import com.epam.bank.entities.TransactionStatus;
@@ -30,6 +31,7 @@ public class ChargeServiceImpl implements ChargeService {
 
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
+    private final TransactionBuilder transactionBuilder;
 
     private final Map<ChargeStrategyType, ChargeStrategy> strategies = Map.of(
             DAILY, new DailyChargeStrategy(),
@@ -37,14 +39,14 @@ public class ChargeServiceImpl implements ChargeService {
 
     @Transactional
     public void applyCharge(Chargeable chargeable) {
-
+        // todo transaction service must be notified and should save transaction (observer - transactionService, subject - chargeService)
         ChargeStrategy strategy = strategies.get(chargeable.getChargeStrategyType());
 
         BigDecimal chargeAmount = strategy.calculateCharge(chargeable.getDebt(), chargeable.getPercent());
         chargeable.setLastChargeAt(LocalDateTime.now());
         chargeable.setNextChargeAt(calculateNextChargeDate(chargeable.getChargeStrategyType()));
 
-        Transaction newTransaction = Transaction.builder()
+        Transaction newTransaction = transactionBuilder
                 .source(chargeable.getBankAccount())
                 .createdAt(chargeable.getLastChargeAt())
                 .description("This is charge with Id: " + chargeable.getId())

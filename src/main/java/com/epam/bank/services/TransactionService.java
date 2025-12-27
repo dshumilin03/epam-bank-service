@@ -22,4 +22,6 @@ public interface TransactionService {
     TransactionStatus refund(UUID transactionId);
 
     List<TransactionDto> findAllByUserIdAndTypeAndStatus(UUID userId, TransactionType transactionType, TransactionStatus transactionStatus);
+
+    List<TransactionDto> getBankAccountTransactions(Long transactionId, boolean outgoing);
 }

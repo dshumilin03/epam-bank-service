@@ -1,4 +1,4 @@
-package com.epam.bank.services;
+package com.epam.bank.domain.services;
 
 import com.epam.bank.dtos.CardDto;
 import com.epam.bank.entities.BankAccount;

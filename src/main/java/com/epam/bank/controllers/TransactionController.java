@@ -34,6 +34,14 @@ public class TransactionController {
         return ResponseEntity.status(HttpStatus.OK).body(transactionDto);
     }
 
+    @GetMapping("/{transactionId}")
+    public ResponseEntity<List<TransactionDto>> getTransactions(@PathVariable Long transactionId, @RequestParam(name = "outgoing") boolean outgoing) {
+        List<TransactionDto> transactionDtoS = transactionService.getBankAccountTransactions(transactionId, outgoing);
+
+        return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
+    }
+
+
     @GetMapping("/charges/users/{userId}")
     public ResponseEntity<List<TransactionDto>> getChargesByUserId(@PathVariable UUID userId) {
         List<TransactionDto> transactionDtoS = transactionService

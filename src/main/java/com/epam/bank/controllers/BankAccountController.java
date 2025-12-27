@@ -1,7 +1,6 @@
 package com.epam.bank.controllers;
 
 import com.epam.bank.dtos.BankAccountDto;
-import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.services.BankAccountService;
 import lombok.AllArgsConstructor;
@@ -10,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -31,12 +29,10 @@ public class BankAccountController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
-    // todo move to transaction controller
-    @GetMapping("/transactions/{transactionId}")
-    public ResponseEntity<List<TransactionDto>> getTransactions(@PathVariable Long transactionId, @RequestParam(name = "outgoing") boolean outgoing) {
-        List<TransactionDto> transactionDtoS = bankAccountService.getTransactions(transactionId, outgoing);
-
-        return ResponseEntity.status(HttpStatus.OK).body(transactionDtoS);
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<BankAccountDto> getByUserId(@PathVariable UUID userId) {
+        BankAccountDto result = bankAccountService.getByUserId(userId);
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @PatchMapping(value = "/{bankNumber}", params = "action=withdraw")

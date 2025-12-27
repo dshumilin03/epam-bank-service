@@ -23,6 +23,7 @@ public class LoanDto {
     @NotNull
     private ChargeStrategyType chargeStrategyType;
     @NotNull
+    // todo switch to long bank account number
     private BankAccountDto bankAccount;
     @NotNull
     private LocalDateTime createdAt;

@@ -1,13 +1,10 @@
 package com.epam.bank.services.impl;
 
 import com.epam.bank.dtos.BankAccountDto;
-import com.epam.bank.dtos.TransactionDto;
 import com.epam.bank.entities.BankAccount;
-import com.epam.bank.entities.Transaction;
 import com.epam.bank.entities.TransactionStatus;
 import com.epam.bank.exceptions.NotFoundException;
 import com.epam.bank.mappers.BankAccountMapper;
-import com.epam.bank.mappers.TransactionMapper;
 import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.UserRepository;
 import com.epam.bank.services.BankAccountService;
@@ -17,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -26,7 +22,6 @@ public class BankAccountServiceImpl implements BankAccountService {
     private final BankAccountRepository bankAccountRepository;
     private final UserRepository userRepository;
     private final BankAccountMapper bankAccountMapper;
-    private final TransactionMapper transactionMapper;
 
     private static final String NOT_FOUND_BANK_ACCOUNT = "Not found bank account by bankAccountNumber";
 
@@ -49,24 +44,11 @@ public class BankAccountServiceImpl implements BankAccountService {
         return bankAccountMapper.toDto(getOrThrow(id));
     }
 
-    // todo move to transaction service
-    @Override
-    @Transactional(readOnly = true)
-    public List<TransactionDto> getTransactions(Long id, boolean outgoing) {
-        BankAccount bankAccount = getOrThrow(id);
-
-        List<Transaction> transactions = outgoing ? bankAccount.getOutgoingTransactions() : bankAccount.getIncomingTransactions();
-
-        return transactions.stream()
-                .map(transactionMapper::toDto)
-                .toList();
-    }
-
     @Override
     @Transactional
     public TransactionStatus deposit(Long bankNumber, BigDecimal moneyAmount) {
         BankAccount bankAccount = getOrThrow(bankNumber);
-        // todo add creation of transaction
+        // todo add creation of transaction + event listener (observer - TransactionService, subject - BankAccountServie)
         bankAccount.setMoneyAmount(bankAccount.getMoneyAmount().add(moneyAmount));
         return TransactionStatus.COMPLETED;
     }
@@ -84,7 +66,7 @@ public class BankAccountServiceImpl implements BankAccountService {
     @Transactional
     public TransactionStatus withdraw(Long bankNumber, BigDecimal moneyAmount) {
         BankAccount bankAccount = getOrThrow(bankNumber);
-        // todo add creation of transaction
+        // todo add creation of transaction + event listener (observer - TransactionService, subject - BankAccountServie)
 
         if (bankAccount.getMoneyAmount().subtract(moneyAmount).compareTo(BigDecimal.valueOf(0)) < 0) {
             return TransactionStatus.FAILED;

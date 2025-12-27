@@ -1,14 +1,12 @@
 package com.epam.bank.services.impl;
 
+import com.epam.bank.domain.LoanFactory;
 import com.epam.bank.dtos.LoanDto;
 import com.epam.bank.dtos.LoanRequestDto;
-import com.epam.bank.entities.BankAccount;
-import com.epam.bank.entities.ChargeStrategyType;
 import com.epam.bank.entities.Loan;
+import com.epam.bank.exceptions.IncorrectLoanClosure;
 import com.epam.bank.exceptions.NotFoundException;
-import com.epam.bank.exceptions.UnknownStrategyTypeException;
 import com.epam.bank.mappers.LoanMapper;
-import com.epam.bank.repositories.BankAccountRepository;
 import com.epam.bank.repositories.LoanRepository;
 import com.epam.bank.services.BankAccountService;
 import com.epam.bank.services.LoanService;
@@ -17,7 +15,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +27,7 @@ public class LoanServiceImpl implements LoanService {
     private final LoanRepository loanRepository;
     private final BankAccountService bankAccountService;
     private final LoanMapper loanMapper;
-    private final BankAccountRepository bankAccountRepository;
+    private final LoanFactory loanFactory;
 
     private static final String NOT_FOUND_BY_ID = "Loan not found by Id";
 
@@ -45,6 +43,10 @@ public class LoanServiceImpl implements LoanService {
     @Override
     @Transactional
     public void close(UUID id) {
+        Loan loan = getOrThrowById(id);
+        if (loan.getMoneyLeft().compareTo(BigDecimal.ZERO) > 0) {
+            throw new IncorrectLoanClosure("User is not paid his loan yet");
+        }
         // todo logic of closing may be added, may be loan status
         loanRepository.delete(getOrThrowById(id));
     }
@@ -52,36 +54,17 @@ public class LoanServiceImpl implements LoanService {
     @Override
     @Transactional
     public LoanDto open(LoanRequestDto loanRequestDto) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nextChargeAt;
 
-        switch (loanRequestDto.chargeStrategyType()) {
-            case ChargeStrategyType.MONTHLY -> nextChargeAt = now.plusMonths(1);
-            case ChargeStrategyType.DAILY -> nextChargeAt = now.plusDays(1);
-            default -> throw new UnknownStrategyTypeException("Got unknown strategy from request");
-        }
+        Loan loan = loanFactory.createLoan(loanRequestDto);
 
-        // todo create loan factory
-        BankAccount bankAccount = bankAccountRepository.findById(loanRequestDto.bankAccountNumber())
-                .orElseThrow(() -> new NotFoundException("Not found bank account by number"));
-        Loan loan = Loan.builder().
-                moneyLeft(loanRequestDto.moneyLeft())
-                .percent(loanRequestDto.percent())
-                .chargeStrategyType(loanRequestDto.chargeStrategyType())
-                .bankAccount(bankAccount)
-                .createdAt(LocalDateTime.now())
-                .nextChargeAt(nextChargeAt)
-                .lastChargeAt(now)
-                .termMonths(loanRequestDto.termMonths())
-                .build();
-
-        //todo need event when loan created deposit money
-        bankAccountService.deposit(bankAccount.getBankAccountNumber(), loanRequestDto.moneyLeft());
+        // todo need event when loan created deposit money (observer - BankAccountService(deposit would create transaction be accurate, subject - LoanService)
+        bankAccountService.deposit(loan.getBankAccount().getBankAccountNumber(), loanRequestDto.moneyLeft());
         return loanMapper.toDto(loanRepository.save(loan));
     }
 
     @Override
     @Transactional
+
     public LoanDto update(UUID id, LoanDto loanDto) {
 
         Loan loan = getOrThrowById(id);

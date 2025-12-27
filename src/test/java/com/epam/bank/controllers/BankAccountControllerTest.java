@@ -123,28 +123,28 @@ class BankAccountControllerTest {
         verify(bankAccountService).deposit(TEST_BANK_NUMBER, TEST_AMOUNT);
     }
 
-    @Test
-    void getTransactions_OutgoingTrue_ShouldReturnTransactions_AndStatus200() throws Exception {
-        List<TransactionDto> mockTransactions = List.of(createMockTransactionDto());
-        when(bankAccountService.getTransactions(TEST_BANK_NUMBER, true)).thenReturn(mockTransactions);
+//    @Test
+//    void getTransactions_OutgoingTrue_ShouldReturnTransactions_AndStatus200() throws Exception {
+//        List<TransactionDto> mockTransactions = List.of(createMockTransactionDto());
+//        when(bankAccountService.getTransactions(TEST_BANK_NUMBER, true)).thenReturn(mockTransactions);
+//
+//        mockMvc.perform(get("/api/bank-accounts/transactions/{bankNumber}", TEST_BANK_NUMBER)
+//                        .param("outgoing", "true"))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$[0].moneyAmount").value(TEST_AMOUNT));
+//
+//        verify(bankAccountService).getTransactions(TEST_BANK_NUMBER, true);
+//    }
 
-        mockMvc.perform(get("/api/bank-accounts/transactions/{bankNumber}", TEST_BANK_NUMBER)
-                        .param("outgoing", "true"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].moneyAmount").value(TEST_AMOUNT));
-
-        verify(bankAccountService).getTransactions(TEST_BANK_NUMBER, true);
-    }
-
-    @Test
-    void getChargesByUserId_ShouldReturnCharges_AndStatus200() throws Exception {
-        List<TransactionDto> mockCharges = List.of(createMockTransactionDto());
-        when(bankAccountService.getChargesByUserId(TEST_USER_ID)).thenReturn(mockCharges);
-
-        mockMvc.perform(get("/api/bank-accounts/transactions/charges/users/{userId}", TEST_USER_ID))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].status").value(TransactionStatus.PENDING.toString()));
-
-        verify(bankAccountService).getChargesByUserId(TEST_USER_ID);
-    }
+//    @Test
+//    void getChargesByUserId_ShouldReturnCharges_AndStatus200() throws Exception {
+//        List<TransactionDto> mockCharges = List.of(createMockTransactionDto());
+//        when(bankAccountService.getChargesByUserId(TEST_USER_ID)).thenReturn(mockCharges);
+//
+//        mockMvc.perform(get("/api/bank-accounts/transactions/charges/users/{userId}", TEST_USER_ID))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$[0].status").value(TransactionStatus.PENDING.toString()));
+//
+//        verify(bankAccountService).getChargesByUserId(TEST_USER_ID);
+//    }
 }

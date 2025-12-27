@@ -3,7 +3,6 @@ package com.epam.bank.services.impl;
 import com.epam.bank.dtos.RegisterRequest;
 import com.epam.bank.dtos.UserCredentialsDto;
 import com.epam.bank.dtos.UserDto;
-import com.epam.bank.entities.Role;
 import com.epam.bank.entities.User;
 import com.epam.bank.exceptions.ExistsException;
 import com.epam.bank.exceptions.NotFoundException;
@@ -44,8 +43,7 @@ public class UserServiceImpl implements UserService {
         newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
         newUser.setPassportId(passwordEncoder.encode(newUser.getPassportId()));
         newUser.setIsDisabled(false);
-        // todo add Role to registerUserDto
-        newUser.setRole(Role.USER);
+        newUser.setRole(registerUserDto.role());
         return userMapper.toDto(userRepository.save(newUser));
     }
 
